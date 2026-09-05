@@ -1,0 +1,208 @@
+<!-- Filter Controls -->
+<section class="filter-controls">
+    <div class="filter-group">
+        <label for="severity-filter"><i class="fas fa-exclamation-triangle"></i> Severity:</label>
+        <select id="severity-filter" class="filter-select">
+            <option value="all"{% if filter_options.default_severity == "all" %} selected{% endif %}>All Severities</option>
+            {% for severity in filter_options.severities %}
+            <option value="{{ severity }}"{% if severity == filter_options.default_severity %} selected{% endif %}>{{ severity.title() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="status-filter"><i class="fas fa-check-circle"></i> Status:</label>
+        <select id="status-filter" class="filter-select">
+            <option value="all"{% if filter_options.default_status == "all" %} selected{% endif %}>All Statuses</option>
+            {% for status in filter_options.statuses %}
+            <option value="{{ status }}"{% if status == filter_options.default_status %} selected{% endif %}>{{ status.replace('_', ' ').title() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="pillar-filter"><i class="fas fa-project-diagram"></i> Pillar:</label>
+        <select id="pillar-filter" class="filter-select">
+            <option value="all">All Pillars</option>
+            {% for pillar in filter_options.pillars %}
+            <option value="{{ pillar }}">{{ pillar.replace('_', ' ').title() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if filter_options.instances %}
+    <div class="filter-group">
+        <label for="instance-filter"><i class="fas fa-server"></i> Instance:</label>
+        <select id="instance-filter" class="filter-select">
+            <option value="all">All Instances</option>
+            {# Options render the friendly alias ({label}) while the underlying
+               value stays as the UUID ({id}) so filters still match against
+               finding.resource_id which is a raw UUID. #}
+            {% for instance in filter_options.instances %}
+            <option value="{{ instance.id }}">{{ instance.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    <div class="filter-group">
+        <label for="search-input"><i class="fas fa-search"></i> Search:</label>
+        <input type="text" id="search-input" class="filter-select" placeholder="Search findings...">
+    </div>
+
+    <div class="filter-buttons">
+        <button id="clear-filters" class="btn btn-secondary"><i class="fas fa-times"></i> Clear Filters</button>
+        <button id="export-data" class="btn btn-primary"><i class="fas fa-download"></i> Export Data</button>
+    </div>
+
+    <div class="filter-group">
+        <span id="filter-stats" class="filter-stats"></span>
+    </div>
+</section>
+
+<!-- Detailed Findings by Pillar (Tabbed Interface) -->
+<section class="pillar-sections-container">
+    <!-- Tab Navigation -->
+    <div class="pillar-tabs">
+        {% for pillar, pillar_findings in findings_by_pillar.items() %}
+        {% if pillar_findings %}
+        <button class="pillar-tab" data-pillar="{{ pillar }}">
+            <i class="{{ pillar | pillar_icon }} pillar-tab-icon"></i>
+            <span>{{ pillar.replace('_', ' ').title() }}</span>
+            <span class="pillar-tab-badge">{{ pillar_findings | length }}</span>
+        </button>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Tab Contents -->
+    {% for pillar, pillar_findings in findings_by_pillar.items() %}
+    {% if pillar_findings %}
+    <div class="pillar-tab-content" data-pillar="{{ pillar }}">
+        <div class="pillar-section" data-pillar="{{ pillar }}">
+            <div class="pillar-header">
+                <i class="{{ pillar | pillar_icon }} pillar-icon"></i>
+                <h3 class="pillar-title">{{ pillar.replace('_', ' ').title() }}</h3>
+                <div class="pillar-stats">
+                    <span class="stat-badge passed">{{ pillar_findings | selectattr('status.value', 'equalto', 'pass') |
+                        list | length }} Passed</span>
+                    <span class="stat-badge failed">{{ pillar_findings | selectattr('status.value', 'equalto', 'fail') |
+                        list | length }} Failed</span>
+                </div>
+            </div>
+
+            <div class="findings-container">
+                {% for finding in pillar_findings %}
+                <div class="finding-card" data-severity="{{ finding.severity.value }}"
+                    data-status="{{ finding.status.value }}" data-pillar="{{ finding.pillar.value }}"
+                    data-instance="{{ finding.resource_id }}" data-title="{{ finding.check_name }}"
+                    data-description="{{ finding.description }}">
+
+                    <div class="finding-header">
+                        <h4 class="finding-title">{{ finding.check_name }}</h4>
+                        <div class="finding-badges">
+                            {% if finding.status.value != 'pass' %}
+                            <span class="badge severity-{{ finding.severity.value }}">{{ finding.severity.value.title()
+                                }}</span>
+                            {% endif %}
+                            <span class="badge status-{{ finding.status.value }}">{{ finding.status.value.replace('_', ' ').title()
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <div class="finding-content">
+                        {# Finding descriptions are authored as markdown so
+                           they can carry paragraph breaks, bullet lists,
+                           fenced code blocks (before/after examples), and
+                           inline code. The `markdown` filter runs them
+                           through markdown-it-py with raw-HTML disabled,
+                           so untrusted flow content can't smuggle in
+                           script tags. `| safe` marks the resulting HTML
+                           as already-escaped so Jinja doesn't
+                           double-encode it. #}
+                        <div class="finding-description markdown-body">
+                            {{ finding.description | markdown | safe }}
+                        </div>
+
+                        {% if finding.structured_remediation %}
+                        <div class="finding-remediation markdown-body">
+                            <h5 class="remediation-title"><i class="fas fa-tools"></i> Remediation</h5>
+                            <p class="mb-2"><strong>{{ finding.structured_remediation.summary }}</strong></p>
+                            {% if finding.structured_remediation.steps %}
+                            <ol class="remediation-steps">
+                                {% for step in finding.structured_remediation.steps %}
+                                <li>
+                                    {{ step.instruction | markdown | safe }}
+                                    {% if step.console_path %}<div class="remediation-console">Console: {{ step.console_path }}</div>{% endif %}
+                                    {% if step.command %}<pre class="remediation-command">{{ step.command }}</pre>{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ol>
+                            {% endif %}
+                            {% if finding.structured_remediation.target_resources %}
+                            <p class="remediation-targets"><strong>Targets:</strong>
+                                {{ finding.structured_remediation.target_resources | join(', ') }}</p>
+                            {% endif %}
+                            {% if finding.structured_remediation.applies_if %}
+                            <div class="remediation-applies-if">
+                                <i class="fas fa-info-circle"></i> Applies if relevant:
+                                {{ finding.structured_remediation.applies_if }}
+                            </div>
+                            {% endif %}
+                            {% if finding.structured_remediation.references %}
+                            <ul class="remediation-references">
+                                {% for ref in finding.structured_remediation.references %}
+                                <li><a href="{{ ref.url | safe_url }}" target="_blank" rel="noopener">{{ ref.title }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        {% elif finding.remediation %}
+                        <div class="finding-remediation markdown-body">
+                            <h5 class="remediation-title"><i class="fas fa-tools"></i> Remediation</h5>
+                            {{ finding.remediation | markdown | safe }}
+                        </div>
+                        {% endif %}
+
+                        <div class="finding-meta">
+                            <div class="meta-item">
+                                <strong>Check ID:</strong> {{ finding.check_id }}
+                            </div>
+                            <div class="meta-item">
+                                <strong>Resource:</strong> {{ finding.resource_type }}
+                            </div>
+                            <div class="meta-item">
+                                <strong>Resource ID:</strong> {{ finding.resource_id | instance_label(instance_alias_by_id) }}
+                            </div>
+                            <div class="meta-item">
+                                <strong>Timestamp:</strong> {{ finding.timestamp | format_datetime }}
+                            </div>
+                        </div>
+
+                        {% if finding.evidence %}
+                        {# Evidence dicts can carry list-of-dict details
+                           (flagged prompts, hardcoded routing entries,
+                           complex flows, etc.). The ``evidence`` filter
+                           renders scalars as a definition list, lists of
+                           dicts as tables, and long ARNs abbreviated with
+                           a hover tooltip. Wrapped in <details> because
+                           evidence is diagnostic detail — most readers
+                           want to skim the description and remediation
+                           first, and only open the evidence when they're
+                           acting on the finding. #}
+                        <details class="finding-evidence">
+                            <summary>Evidence</summary>
+                            <div class="evidence-body">
+                                {{ finding.evidence | evidence | safe }}
+                            </div>
+                        </details>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</section>

@@ -1,0 +1,169 @@
+{# ---------------------------------------------------------------------- #}
+{# Caller Journey Map — phone-number driven.                             #}
+{#                                                                        #}
+{# The reader picks an instance from the first dropdown, then a DID or   #}
+{# toll-free number from the second dropdown; the diagram panel shows    #}
+{# the contact flow that number terminates on. Each diagram is fully     #}
+{# server-rendered (see journey/renderer.py) — every node's position     #}
+{# and every connector's bend points are computed in Python when the     #}
+{# report is generated, then shipped as plain HTML/SVG. There is no      #}
+{# client-side layout library involved and nothing to fall back to if    #}
+{# one fails to load.                                                    #}
+{#                                                                        #}
+{# When no entries are available, the empty-state block explains WHY —   #}
+{# usually a permission gap, no phone numbers claimed on the instance,   #}
+{# or numbers pointing at queues instead of flows.                       #}
+{# ---------------------------------------------------------------------- #}
+{% if journey_map_entries or journey_map_status %}
+<section class="journey-map-section" id="journey-map-section">
+    <div class="journey-map-header">
+        <h2><i class="fas fa-route"></i> Caller Journey Map</h2>
+        {% if journey_map_entries %}
+        <p class="journey-map-intro">
+            Pick an instance, then a phone number, to walk the contact flow
+            a caller enters when they dial that number.
+            This section only lists numbers that terminate on a contact flow —
+            numbers pointing at queues, agents, or unassigned are omitted
+            because there's no flow to draw.
+        </p>
+        <div class="journey-map-legend">
+            <span class="legend-item legend-speaks">Plays a prompt</span>
+            <span class="legend-item legend-chooses">Caller chooses</span>
+            <span class="legend-item legend-waits">Waits for agent</span>
+            <span class="legend-item legend-terminal">Call ends / transferred</span>
+            <span class="legend-item legend-processing">System processing</span>
+        </div>
+        {% else %}
+        <p class="journey-map-intro">
+            The Caller Journey Map couldn't be produced for this run —
+            see the explanation below.
+        </p>
+        {% endif %}
+    </div>
+
+    {% if journey_map_entries %}
+    <div class="journey-map-controls" role="region" aria-label="Journey Map filters">
+        <label class="journey-map-control">
+            <span class="journey-map-control-label">Connect instance</span>
+            <select id="journey-map-instance-select"
+                    class="journey-map-select"
+                    aria-controls="journey-map-phone-select">
+                {% for inst in journey_map_instances %}
+                <option value="{{ inst.id }}">{{ inst.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="journey-map-control">
+            <span class="journey-map-control-label">DID / toll-free number</span>
+            <select id="journey-map-phone-select"
+                    class="journey-map-select"
+                    aria-controls="journey-map-panel">
+                {# Options are injected client-side once the initializer
+                   picks the first instance. Server-side we render nothing
+                   to avoid stale state if the user reloads mid-selection. #}
+            </select>
+        </label>
+    </div>
+
+    {# Zoom toolbar — static markup, wired once by the initializer. Lives
+       outside #journey-map-panel because that element's contents are
+       fully replaced on every phone-number switch; a control inside it
+       would be wiped along with the old diagram. Diagrams render at
+       their native, server-computed pixel size (see journey/renderer.py)
+       so a small flow stays crisp and a large one scrolls via the
+       panel's overflow — these controls let the reader shrink an
+       oversized diagram to see it whole, or zoom into a small one, on
+       demand. #}
+    <div class="journey-map-toolbar" role="group" aria-label="Diagram controls">
+        <button type="button" id="journey-map-zoom-out" class="journey-map-zoom-btn" aria-label="Zoom out">
+            <i class="fas fa-search-minus" aria-hidden="true"></i>
+        </button>
+        <span id="journey-map-zoom-level" class="journey-map-zoom-level" aria-live="polite">100%</span>
+        <button type="button" id="journey-map-zoom-in" class="journey-map-zoom-btn" aria-label="Zoom in">
+            <i class="fas fa-search-plus" aria-hidden="true"></i>
+        </button>
+        <button type="button" id="journey-map-zoom-reset" class="journey-map-zoom-btn journey-map-zoom-reset"
+                aria-label="Fit diagram to window">
+            <i class="fas fa-compress" aria-hidden="true"></i> Fit to window
+        </button>
+        <span class="journey-map-toolbar-separator" aria-hidden="true"></span>
+        <button type="button" id="journey-map-download-svg"
+                class="journey-map-zoom-btn journey-map-export-btn" disabled>
+            <i class="fas fa-file-code" aria-hidden="true"></i> SVG
+        </button>
+        <button type="button" id="journey-map-download-png"
+                class="journey-map-zoom-btn journey-map-export-btn" disabled>
+            <i class="fas fa-image" aria-hidden="true"></i> PNG
+        </button>
+        <button type="button" id="journey-map-download-drawio"
+                class="journey-map-zoom-btn journey-map-export-btn" disabled>
+            <i class="fas fa-project-diagram" aria-hidden="true"></i> draw.io
+        </button>
+        <span id="journey-map-export-status" class="journey-map-export-status"
+              role="status" aria-live="polite"></span>
+    </div>
+
+    <div id="journey-map-panel" class="journey-map-diagram" aria-live="polite">
+        {# The initializer replaces this content when a phone number is
+           selected, inserting the selected entry's server-rendered
+           `diagram_html` (already-positioned cards + SVG connectors —
+           see journey/renderer.py) wrapped in
+           .journey-map-diagram-scale, the element the zoom toolbar
+           transforms. #}
+        <div class="journey-map-empty-selection">
+            Select a phone number to draw its caller journey.
+        </div>
+    </div>
+
+    <aside id="journey-map-inspector" class="journey-map-inspector" hidden
+           aria-labelledby="journey-map-inspector-title">
+        <div class="journey-map-inspector-header">
+            <div>
+                <span class="journey-map-inspector-eyebrow">Selected step or route</span>
+                <h3 id="journey-map-inspector-title">Details</h3>
+            </div>
+            <button type="button" id="journey-map-inspector-close"
+                    class="journey-map-inspector-close" aria-label="Close journey details">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p id="journey-map-inspector-summary" class="journey-map-inspector-summary"></p>
+        <div id="journey-map-inspector-scope" class="journey-map-inspector-scope" hidden>
+            <h4 id="journey-map-inspector-scope-heading">What this block does</h4>
+            <ul id="journey-map-inspector-scope-list"></ul>
+        </div>
+        <div id="journey-map-inspector-ai" class="journey-map-inspector-ai" hidden>
+            <span class="journey-map-inspector-ai-label">AI agent</span>
+            <strong id="journey-map-inspector-ai-identity"></strong>
+            <span id="journey-map-inspector-ai-context"
+                  class="journey-map-inspector-ai-context"></span>
+        </div>
+        <p id="journey-map-inspector-status" class="sr-only" aria-live="polite"></p>
+    </aside>
+
+    {# Data island — the initializer script parses this to populate the
+       phone-number dropdown per instance and pull the server-rendered
+       diagram payload for the selected entry. `type="application/json"`
+       prevents the browser from evaluating it as script; the
+       report_generator escapes `</` so the tag can't be closed early. #}
+    <script id="journey-map-data" type="application/json">{{ journey_map_entries_json | safe }}</script>
+    {% else %}
+    <div class="journey-map-empty">
+        <div class="journey-map-empty-icon" aria-hidden="true">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <p class="journey-map-empty-message">
+            {{ journey_map_status.message }}
+        </p>
+        {% if journey_map_status.hint %}
+        <p class="journey-map-empty-hint">
+            <strong>What to try:</strong> {{ journey_map_status.hint }}
+        </p>
+        {% endif %}
+        <p class="journey-map-empty-code">
+            <span>Diagnostic:</span> <code>{{ journey_map_status.reason }}</code>
+        </p>
+    </div>
+    {% endif %}
+</section>
+{% endif %}

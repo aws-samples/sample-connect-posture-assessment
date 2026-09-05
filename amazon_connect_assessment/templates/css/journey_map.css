@@ -1,0 +1,1301 @@
+/* ============================================================================
+ * Caller Journey Map — customer-experience diagrams for top flows.
+ *
+ * The palette mirrors the categories defined in journey/renderer.py:
+ *   speaks     — green   — the caller hears something
+ *   chooses    — blue    — the caller makes an input
+ *   waits      — yellow  — hold / callback
+ *   terminal   — red     — call ends / transferred
+ *   processing — gray    — invisible to the caller
+ *
+ * The diagram itself is fully server-rendered (see journey/renderer.py):
+ * every node's pixel position and every connector's bend points are
+ * computed in Python when the report is generated, then emitted as
+ * absolutely-positioned <div> cards plus an inline SVG whose paths are
+ * built exclusively from horizontal/vertical segments. No JS layout
+ * library is involved — the CSS below only styles those already-
+ * positioned elements (colors, borders, typography) and the chrome
+ * around the diagram (legend, dropdowns, zoom toolbar).
+ * ============================================================================ */
+
+.journey-map-section {
+    margin: 2rem 0 3rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.journey-map-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    color: #232f3e;
+}
+
+.journey-map-header h2 i {
+    color: #ff9900;
+}
+
+.journey-map-intro {
+    color: #495057;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 800px;
+}
+
+/* Legend — a horizontal strip of category swatches so the reader can
+ * decode the colored nodes in each diagram at a glance. */
+.journey-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 1.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid;
+    font-weight: 500;
+}
+
+.legend-item.legend-speaks {
+    background: #d4edda;
+    color: #155724;
+    border-color: #28a745;
+}
+
+.legend-item.legend-chooses {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-color: #17a2b8;
+}
+
+.legend-item.legend-waits {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.legend-item.legend-terminal {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #dc3545;
+}
+
+.legend-item.legend-processing {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px dashed #adb5bd;
+}
+
+/* Filter row — two dropdowns side by side driving the single diagram
+ * panel below. The initializer JS wires the change handlers; the CSS
+ * just lays them out and gives them enough breathing room to be
+ * tappable on smaller screens. */
+.journey-map-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.journey-map-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.journey-map-control-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.journey-map-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #adb5bd;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.95rem;
+    color: #212529;
+    min-height: 2.5rem;
+    max-width: 100%;
+}
+
+.journey-map-select:focus {
+    outline: 2px solid #ff9900;
+    outline-offset: 1px;
+}
+
+.journey-map-select:disabled {
+    background: #f1f3f5;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Diagram panel header — rendered by the initializer JS alongside the
+ * server-rendered `.jm-canvas` block whenever a phone number is selected. */
+.journey-map-flow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.journey-map-flow-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #232f3e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.journey-map-empty-selection {
+    padding: 2rem 1rem;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+}
+
+.journey-map-flow-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.journey-map-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.journey-map-badge-signal {
+    background: #e7f3ff;
+    color: #0c5460;
+    border: 1px solid #b8daff;
+}
+
+.journey-map-badge-caveat {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    font-style: italic;
+}
+
+.journey-map-badge-flow-id {
+    background: #e9ecef;
+    color: #6c757d;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+}
+
+/* Zoom toolbar — sits above the diagram panel. Diagrams render at their
+ * native, server-computed size (`.jm-canvas` carries an explicit
+ * width/height), so a wide flow can be wider than the panel; these
+ * controls scale it back down on demand rather than shrinking every
+ * diagram to the same width regardless of complexity. */
+.journey-map-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+}
+
+.journey-map-zoom-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    background: #ffffff;
+    border: 1px solid #adb5bd;
+    border-radius: 4px;
+    color: #495057;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.journey-map-zoom-btn:hover:not(:disabled) {
+    background: #f1f3f5;
+    border-color: #868e96;
+}
+
+.journey-map-zoom-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.journey-map-zoom-btn:focus-visible {
+    outline: 2px solid #ff9900;
+    outline-offset: 1px;
+}
+
+.journey-map-zoom-level {
+    min-width: 3.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.journey-map-zoom-reset {
+    margin-left: 0.25rem;
+}
+
+.journey-map-toolbar-separator {
+    width: 1px;
+    height: 1.75rem;
+    margin: 0 0.25rem;
+    background: #dee2e6;
+}
+
+.journey-map-export-btn {
+    font-weight: 600;
+}
+
+.journey-map-export-status {
+    min-height: 1.25rem;
+    margin-left: 0.25rem;
+    color: #5f6b7a;
+    font-size: 0.8rem;
+}
+
+.journey-map-export-status.is-error {
+    color: #d91515;
+    font-weight: 600;
+}
+
+/* Diagram container — a white background and small padding so the
+ * diagram breathes. Diagrams render at native size (not shrunk to
+ * fit), so a large flow legitimately overflows the panel; the scroll
+ * here (rather than a fixed shrink) is what lets the reader pan across
+ * it instead of losing legibility. The zoom toolbar's scale transform
+ * targets .journey-map-diagram-scale, the wrapper the initializer JS
+ * puts the server-rendered `.jm-canvas` block into. */
+.journey-map-diagram {
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    overflow: auto;
+    max-height: 700px;
+}
+
+.journey-map-diagram-scale {
+    display: inline-block;
+    transform-origin: top left;
+    position: relative;
+}
+
+/* Small viewports — stack the header meta and shrink padding. */
+@media (max-width: 720px) {
+    .journey-map-section {
+        padding: 1rem;
+    }
+    .journey-map-flow-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .journey-map-toolbar {
+        flex-wrap: wrap;
+    }
+}
+
+body.dark-mode .journey-map-zoom-btn {
+    background: #1e2130;
+    border-color: #495057;
+    color: #e9ecef;
+}
+body.dark-mode .journey-map-zoom-btn:hover:not(:disabled) {
+    background: #2a2d3e;
+    border-color: #6c757d;
+}
+body.dark-mode .journey-map-zoom-level,
+body.dark-mode .journey-map-export-status {
+    color: #ced4da;
+}
+body.dark-mode .journey-map-toolbar-separator {
+    background: #495057;
+}
+body.dark-mode .journey-map-export-status.is-error {
+    color: #ff8a8a;
+}
+
+/* Dark mode support to match the rest of the report. */
+body.dark-mode .journey-map-section {
+    background: #1e2130;
+}
+body.dark-mode .journey-map-section h2,
+body.dark-mode .journey-map-flow-header h3 {
+    color: #e9ecef;
+}
+body.dark-mode .journey-map-intro {
+    color: #adb5bd;
+}
+body.dark-mode .journey-map-legend {
+    background: #2a2d3e;
+}
+body.dark-mode .journey-map-controls {
+    background: #2a2d3e;
+    border-color: #495057;
+}
+body.dark-mode .journey-map-control-label {
+    color: #ced4da;
+}
+body.dark-mode .journey-map-select {
+    background: #1e2130;
+    color: #e9ecef;
+    border-color: #495057;
+}
+body.dark-mode .journey-map-select:disabled {
+    background: #2a2d3e;
+    color: #6c757d;
+}
+body.dark-mode .journey-map-empty-selection {
+    color: #ced4da;
+}
+body.dark-mode .journey-map-diagram {
+    background: #ffffff; /* keep the diagram panel light — node colors are tuned for it */
+}
+
+/* ============================================================================
+ * Server-rendered diagram — boxy cards on a fixed-size canvas, connected
+ * by orthogonal (horizontal/vertical-only) SVG paths. See
+ * journey/renderer.py: `.jm-canvas` carries an explicit pixel width/height
+ * computed from the layout; every `.jm-node` is absolutely positioned
+ * within it via an inline `left`/`top` style; the SVG overlay draws every
+ * connector using only `H`/`V` path commands, so no diagonal segment is
+ * geometrically possible.
+ * ============================================================================ */
+
+.jm-canvas {
+    position: relative;
+}
+
+.jm-connectors {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.jm-connector,
+.jm-connector-back {
+    fill: none;
+    stroke: #adb5bd;
+    stroke-width: 1.75;
+}
+
+.jm-connector-head,
+.jm-connector-back-head {
+    fill: #adb5bd;
+    stroke: none;
+}
+
+.jm-connector-error,
+.jm-connector-error.jm-connector-back {
+    /* Explicit here, not just inherited from the `.jm-connector,
+     * .jm-connector-back` rule above: a forward error edge's <path>
+     * carries only the single class `jm-connector-error` (see
+     * journey/renderer.py's `css_class` assignment), which never
+     * matches that rule's exact-class selectors. Without `fill: none`
+     * repeated here, SVG's fill initial value (black) applied to an
+     * un-filled-looking M/H/V stair-step path — which the renderer
+     * never closes with `Z` — still gets auto-closed and filled solid
+     * by the browser, producing a black wedge at every bend of every
+     * error connector instead of an open line. */
+    fill: none;
+    stroke: #dc3545;
+    stroke-dasharray: 5 4;
+}
+
+.jm-connector-error-head,
+.jm-connector-error.jm-connector-back-head {
+    fill: #dc3545;
+}
+
+.jm-edge-label {
+    position: absolute;
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.jm-node {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+    border-top: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.jm-node-category {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.75;
+    margin-bottom: 0.15rem;
+}
+
+.jm-node-label {
+    display: block;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.jm-node-speaks {
+    background: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+.jm-node-chooses {
+    background: #d1ecf1;
+    border-left-color: #17a2b8;
+    color: #0c5460;
+}
+
+.jm-node-waits {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+}
+
+.jm-node-terminal {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.jm-node-processing {
+    background: #f8f9fa;
+    border-left-color: #adb5bd;
+    color: #6c757d;
+    border-top-style: dashed;
+    border-right-style: dashed;
+    border-bottom-style: dashed;
+}
+
+.jm-node-entry {
+    box-shadow: 0 0 0 2px #ff9900, 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.jm-hidden-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.jm-placeholder {
+    padding: 1rem;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+/* -- Dark mode ------------------------------------------------------------ */
+
+body.dark-mode .jm-connector,
+body.dark-mode .jm-connector-back {
+    stroke: #6c757d;
+}
+
+body.dark-mode .jm-connector-head,
+body.dark-mode .jm-connector-back-head {
+    fill: #6c757d;
+}
+
+body.dark-mode .jm-edge-label {
+    background: #1e2130;
+    border-color: #495057;
+    color: #ced4da;
+}
+
+body.dark-mode .jm-node-speaks {
+    background: #1e3a24;
+    border-left-color: #4caf70;
+    color: #b8e5c4;
+}
+
+body.dark-mode .jm-node-chooses {
+    background: #1c3841;
+    border-left-color: #4ba7c1;
+    color: #b5dae4;
+}
+
+body.dark-mode .jm-node-waits {
+    background: #3a2f10;
+    border-left-color: #d4a017;
+    color: #ecd693;
+}
+
+body.dark-mode .jm-node-terminal {
+    background: #3a1a20;
+    border-left-color: #d94a55;
+    color: #f0b8bd;
+}
+
+body.dark-mode .jm-node-processing {
+    background: #2a2d31;
+    border-left-color: #6c757d;
+    color: #adb5bd;
+}
+
+body.dark-mode .jm-hidden-note,
+body.dark-mode .jm-placeholder {
+    color: #ced4da;
+    background: #2a2d31;
+}
+
+/* ============================================================================
+ * Empty-state block.
+ *
+ * Rendered when the tool attempted to draw the Caller Journey Map but the
+ * pipeline produced zero diagrams. The message + hint come from
+ * AssessmentEngine._diagnose_empty_journey_map so the reader can tell WHY
+ * (config skip, missing IAM permission, no phone numbers, etc.).
+ * ============================================================================ */
+
+.journey-map-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2rem 1.5rem;
+    background: #f8f9fa;
+    border: 1px dashed #adb5bd;
+    border-radius: 8px;
+    color: #495057;
+    text-align: center;
+}
+
+.journey-map-empty-icon {
+    font-size: 2rem;
+    color: #ff9900;
+    opacity: 0.8;
+}
+
+.journey-map-empty-message {
+    max-width: 42rem;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.journey-map-empty-hint {
+    max-width: 42rem;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-left: 3px solid #ff9900;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #495057;
+    text-align: left;
+}
+
+.journey-map-empty-code {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.journey-map-empty-code code {
+    background: #ffffff;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+    font-size: 0.8rem;
+}
+
+body.dark-mode .journey-map-empty {
+    background: #2a2d31;
+    border-color: #6c757d;
+    color: #ced4da;
+}
+
+body.dark-mode .journey-map-empty-hint {
+    background: #1e1f22;
+    color: #dee2e6;
+}
+
+body.dark-mode .journey-map-empty-code code {
+    background: #1e1f22;
+    border-color: #495057;
+    color: #dee2e6;
+}
+
+/* Caller-focused projected journey and inspector. */
+.jm-primary-note {
+    margin: 0 0 0.75rem;
+    color: #495057;
+    font-size: 0.8rem;
+}
+
+.jm-connector-primary {
+    stroke: #52606d;
+    stroke-width: 2.5;
+}
+
+.jm-connector-fallback,
+.jm-connector-fallback.jm-connector-back {
+    fill: none;
+    stroke: #d97706;
+    stroke-width: 1.75;
+    stroke-dasharray: 3 4;
+}
+
+.jm-connector-fallback-head {
+    fill: #d97706;
+    stroke: none;
+}
+
+.jm-connector-jump {
+    stroke-dasharray: 2 3;
+}
+
+button.jm-node,
+button.jm-edge-label {
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+button.jm-node:focus-visible,
+button.jm-edge-label:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 3px;
+    z-index: 5;
+}
+
+button.jm-node[aria-pressed="true"],
+button.jm-edge-label[aria-pressed="true"] {
+    box-shadow: 0 0 0 3px rgba(0, 95, 204, 0.28);
+    z-index: 4;
+}
+
+.jm-node-primary {
+    border-bottom-color: #52606d;
+    border-bottom-width: 2px;
+}
+
+.jm-node-group {
+    background-image: linear-gradient(135deg, rgba(173, 181, 189, 0.08) 25%, transparent 25%, transparent 50%, rgba(173, 181, 189, 0.08) 50%, rgba(173, 181, 189, 0.08) 75%, transparent 75%);
+    background-size: 12px 12px;
+}
+
+.jm-node-route {
+    position: absolute;
+    top: 5px;
+    right: 7px;
+    color: #52606d;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+button.jm-edge-label {
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.jm-edge-primary {
+    border-color: #52606d;
+    color: #364152;
+}
+
+.jm-edge-fallback {
+    border-color: #d97706;
+    color: #92400e;
+}
+
+.jm-edge-exception {
+    border-color: #dc3545;
+    color: #842029;
+}
+
+.journey-map-inspector {
+    margin-top: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #cfd6dd;
+    border-left: 4px solid #005fcc;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #243447;
+}
+
+.journey-map-inspector[hidden] {
+    display: none;
+}
+
+.journey-map-inspector-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.journey-map-inspector-eyebrow {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: #66788a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.journey-map-inspector h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.journey-map-inspector-close {
+    border: 0;
+    background: transparent;
+    color: #495057;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.journey-map-inspector-close:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+}
+
+.journey-map-inspector-summary {
+    margin: 0.65rem 0 0;
+    line-height: 1.45;
+}
+
+.journey-map-inspector-scope {
+    margin-top: 0.8rem;
+}
+
+.journey-map-inspector-scope h4 {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+}
+
+.journey-map-inspector-scope ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.journey-map-inspector-scope li + li {
+    margin-top: 0.2rem;
+}
+
+.journey-map-inspector-ai {
+    display: grid;
+    gap: 0.15rem;
+    margin-top: 0.8rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #cfd6dd;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.journey-map-inspector-ai[hidden] {
+    display: none;
+}
+
+.journey-map-inspector-ai-label {
+    color: #66788a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.journey-map-inspector-ai strong {
+    font-size: 0.95rem;
+}
+
+.journey-map-inspector-ai-context {
+    color: #52606d;
+    font-size: 0.8rem;
+}
+
+body.dark-mode .jm-primary-note {
+    color: #ced4da;
+}
+
+body.dark-mode .journey-map-inspector {
+    border-color: #495057;
+    border-left-color: #66a8ff;
+    background: #252934;
+    color: #e9ecef;
+}
+
+body.dark-mode .journey-map-inspector-ai {
+    border-color: #495057;
+    background: #1e222b;
+}
+
+body.dark-mode .journey-map-inspector-ai-label,
+body.dark-mode .journey-map-inspector-ai-context {
+    color: #adb5bd;
+}
+
+body.dark-mode .journey-map-inspector-eyebrow {
+    color: #adb5bd;
+}
+
+/* Dark-mode control and inspector contrast */
+body.dark-mode .journey-map-select:disabled,
+body.dark-mode .journey-map-empty-code {
+    color: #b8c2cc;
+}
+
+body.dark-mode .journey-map-inspector-close {
+    color: #e9ecef;
+}
+
+body.dark-mode .journey-map-inspector-close:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+
+/* ============================================================================
+ * Cohesive dark Journey Map palette.
+ *
+ * Keep this block last: earlier dark-mode rules provide compatibility defaults,
+ * while these Journey-scoped overrides preserve route/category meaning and leave
+ * light mode plus portable exports unchanged.
+ * ============================================================================ */
+body.dark-mode .journey-map-section {
+    --jm-surface-section: #1e293b;
+    --jm-surface-raised: #273449;
+    --jm-surface-canvas: #0f172a;
+    --jm-border: #64748b;
+    --jm-text: #f8fafc;
+    --jm-text-secondary: #cbd5e1;
+    --jm-text-muted: #94a3b8;
+    --jm-focus: #93c5fd;
+    --jm-route-primary: #60a5fa;
+    --jm-entry: #f59e0b;
+    --jm-route-fallback: #fbbf24;
+    --jm-route-exception: #fb7185;
+    background: var(--jm-surface-section);
+    border-color: var(--jm-border);
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-header h2,
+body.dark-mode .journey-map-section .journey-map-flow-header h3,
+body.dark-mode .journey-map-section .journey-map-inspector h3,
+body.dark-mode .journey-map-section .journey-map-inspector-scope h4 {
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-intro,
+body.dark-mode .journey-map-section .jm-primary-note {
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-legend,
+body.dark-mode .journey-map-section .journey-map-controls {
+    background: var(--jm-surface-raised);
+    border-color: var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .legend-item {
+    border: 1px solid transparent;
+}
+
+body.dark-mode .journey-map-section .legend-speaks {
+    background: #123524;
+    border-color: #4ade80;
+    color: #d1fae5;
+}
+
+body.dark-mode .journey-map-section .legend-chooses {
+    background: #123447;
+    border-color: #38bdf8;
+    color: #e0f2fe;
+}
+
+body.dark-mode .journey-map-section .legend-waits {
+    background: #3a2e0b;
+    border-color: var(--jm-route-fallback);
+    color: #fef3c7;
+}
+
+body.dark-mode .journey-map-section .legend-terminal {
+    background: #3b1820;
+    border-color: var(--jm-route-exception);
+    color: #ffe4e6;
+}
+
+body.dark-mode .journey-map-section .legend-processing {
+    background: #273142;
+    border-color: #94a3b8;
+    color: #e2e8f0;
+}
+
+body.dark-mode .journey-map-section .journey-map-control-label,
+body.dark-mode .journey-map-section .journey-map-zoom-level,
+body.dark-mode .journey-map-section .journey-map-export-status {
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-select,
+body.dark-mode .journey-map-section .journey-map-select option,
+body.dark-mode .journey-map-section .journey-map-zoom-btn {
+    color-scheme: dark;
+    background: var(--jm-surface-section);
+    border-color: var(--jm-border);
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-select:hover:not(:disabled),
+body.dark-mode .journey-map-section .journey-map-zoom-btn:hover:not(:disabled) {
+    background: #334155;
+    border-color: var(--jm-focus);
+}
+
+body.dark-mode .journey-map-section .journey-map-select:focus,
+body.dark-mode .journey-map-section .journey-map-zoom-btn:focus-visible,
+body.dark-mode .journey-map-section .journey-map-inspector-close:focus-visible {
+    outline: 3px solid var(--jm-focus);
+    outline-offset: 2px;
+}
+
+body.dark-mode .journey-map-section .journey-map-select:disabled,
+body.dark-mode .journey-map-section .journey-map-zoom-btn:disabled {
+    background: #202c3e;
+    color: var(--jm-text-muted);
+}
+
+body.dark-mode .journey-map-section .journey-map-toolbar-separator {
+    background: var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .journey-map-export-status.is-error {
+    color: #fecdd3;
+}
+
+body.dark-mode .journey-map-section .journey-map-flow-header {
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-badge-signal {
+    background: #123447;
+    color: #e0f2fe;
+}
+
+body.dark-mode .journey-map-section .journey-map-badge-flow-id {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .journey-map-section .journey-map-badge-caveat {
+    background: #3a2e0b;
+    color: #fef3c7;
+}
+
+body.dark-mode .journey-map-section .journey-map-diagram,
+body.dark-mode .journey-map-section .jm-canvas {
+    background: var(--jm-surface-canvas);
+}
+
+body.dark-mode .journey-map-section .journey-map-diagram {
+    border-color: var(--jm-border);
+    color: var(--jm-text-secondary);
+    scrollbar-color: var(--jm-border) var(--jm-surface-canvas);
+}
+
+body.dark-mode .journey-map-section .journey-map-diagram::-webkit-scrollbar-track {
+    background: var(--jm-surface-canvas);
+}
+
+body.dark-mode .journey-map-section .journey-map-diagram::-webkit-scrollbar-thumb {
+    background: var(--jm-border);
+    border: 2px solid var(--jm-surface-canvas);
+    border-radius: 8px;
+}
+
+body.dark-mode .journey-map-section .journey-map-empty-selection {
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .jm-connector,
+body.dark-mode .journey-map-section .jm-connector-back {
+    stroke: var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .jm-connector-head,
+body.dark-mode .journey-map-section .jm-connector-back-head {
+    fill: var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .jm-connector-primary {
+    stroke-width: 2.5;
+}
+
+body.dark-mode .journey-map-section .jm-connector.jm-connector-primary {
+    stroke: var(--jm-route-primary);
+}
+
+body.dark-mode .journey-map-section .jm-connector-primary-head {
+    fill: var(--jm-route-primary);
+}
+
+body.dark-mode .journey-map-section .jm-connector-fallback,
+body.dark-mode .journey-map-section .jm-connector-fallback.jm-connector-back {
+    stroke: var(--jm-route-fallback);
+    stroke-width: 2;
+}
+
+body.dark-mode .journey-map-section .jm-connector-fallback-head {
+    fill: var(--jm-route-fallback);
+}
+
+body.dark-mode .journey-map-section .jm-connector-error,
+body.dark-mode .journey-map-section .jm-connector-error.jm-connector-back {
+    stroke: var(--jm-route-exception);
+    stroke-width: 2;
+}
+
+body.dark-mode .journey-map-section .jm-connector-error-head {
+    fill: var(--jm-route-exception);
+}
+
+body.dark-mode .journey-map-section .jm-edge-label {
+    background: var(--jm-surface-section);
+    border-color: var(--jm-border);
+    color: #e2e8f0;
+}
+
+body.dark-mode .journey-map-section .jm-edge-label.jm-edge-primary {
+    background: #172554;
+    border-color: var(--jm-route-primary);
+    color: #dbeafe;
+}
+
+body.dark-mode .journey-map-section .jm-edge-label.jm-edge-fallback {
+    background: #3a2e0b;
+    border-color: var(--jm-route-fallback);
+    color: #fef3c7;
+}
+
+body.dark-mode .journey-map-section .jm-edge-label.jm-edge-exception {
+    background: #3b1820;
+    border-color: var(--jm-route-exception);
+    color: #ffe4e6;
+}
+
+body.dark-mode .journey-map-section .jm-edge-label:hover {
+    filter: brightness(1.15);
+}
+
+body.dark-mode .journey-map-section .jm-node {
+    border-color: var(--jm-border);
+    color: var(--jm-text);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .journey-map-section .jm-node-speaks {
+    background: #123524;
+    border-left-color: #4ade80;
+    color: #d1fae5;
+}
+
+body.dark-mode .journey-map-section .jm-node-chooses {
+    background: #123447;
+    border-left-color: #38bdf8;
+    color: #e0f2fe;
+}
+
+body.dark-mode .journey-map-section .jm-node-waits {
+    background: #3a2e0b;
+    border-left-color: var(--jm-route-fallback);
+    color: #fef3c7;
+}
+
+body.dark-mode .journey-map-section .jm-node-terminal {
+    background: #3b1820;
+    border-left-color: var(--jm-route-exception);
+    color: #ffe4e6;
+}
+
+body.dark-mode .journey-map-section .jm-node-processing {
+    background: #273142;
+    border-left-color: #94a3b8;
+    color: #e2e8f0;
+}
+
+body.dark-mode .journey-map-section .jm-node-primary {
+    border-bottom-color: var(--jm-route-primary);
+}
+
+body.dark-mode .journey-map-section .jm-node-group {
+    background-image: linear-gradient(135deg, rgba(148, 163, 184, 0.13) 25%, transparent 25%, transparent 50%, rgba(148, 163, 184, 0.13) 50%, rgba(148, 163, 184, 0.13) 75%, transparent 75%);
+}
+
+body.dark-mode .journey-map-section .jm-node-category {
+    color: inherit;
+    opacity: 0.82;
+}
+
+body.dark-mode .journey-map-section .jm-node-label {
+    color: inherit;
+}
+
+body.dark-mode .journey-map-section .jm-node-route {
+    color: #bfdbfe;
+}
+
+body.dark-mode .journey-map-section .jm-node-entry {
+    box-shadow: 0 0 0 2px var(--jm-entry), 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .journey-map-section .jm-node:hover,
+body.dark-mode .journey-map-section .jm-edge-label:hover {
+    z-index: 4;
+    box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.55), 0 3px 7px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .journey-map-section .jm-node:focus-visible,
+body.dark-mode .journey-map-section .jm-edge-label:focus-visible {
+    outline: 3px solid var(--jm-focus);
+    outline-offset: 3px;
+    z-index: 6;
+}
+
+body.dark-mode .journey-map-section .jm-node[aria-pressed="true"],
+body.dark-mode .journey-map-section .jm-edge-label[aria-pressed="true"] {
+    box-shadow: 0 0 0 3px var(--jm-route-primary);
+    z-index: 5;
+}
+
+body.dark-mode .journey-map-section .jm-node-entry[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px var(--jm-entry), 0 0 0 5px var(--jm-route-primary);
+}
+
+body.dark-mode .journey-map-section .jm-hidden-note {
+    background: transparent;
+    color: var(--jm-text-muted);
+}
+
+body.dark-mode .journey-map-section .jm-placeholder {
+    background: var(--jm-surface-raised);
+    color: var(--jm-text-secondary);
+    border: 1px solid var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .journey-map-empty {
+    background: var(--jm-surface-raised);
+    border-color: var(--jm-border);
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-empty-message {
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-empty-hint {
+    background: #3a2e0b;
+    border-color: var(--jm-route-fallback);
+    color: #fef3c7;
+}
+
+body.dark-mode .journey-map-section .journey-map-empty-code,
+body.dark-mode .journey-map-section .journey-map-empty-code code {
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-empty-code code {
+    background: var(--jm-surface-canvas);
+    border: 1px solid var(--jm-border);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector {
+    background: var(--jm-surface-raised);
+    border-color: var(--jm-border);
+    border-left-color: var(--jm-route-primary);
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector-eyebrow,
+body.dark-mode .journey-map-section .journey-map-inspector-ai-label,
+body.dark-mode .journey-map-section .journey-map-inspector-ai-context {
+    color: var(--jm-text-muted);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector-summary,
+body.dark-mode .journey-map-section .journey-map-inspector-scope {
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector-close {
+    background: transparent;
+    color: var(--jm-text-secondary);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector-close:hover {
+    background: #334155;
+    color: var(--jm-text);
+}
+
+body.dark-mode .journey-map-section .journey-map-inspector-ai {
+    background: var(--jm-surface-canvas);
+    border-color: var(--jm-border);
+    color: var(--jm-text);
+}

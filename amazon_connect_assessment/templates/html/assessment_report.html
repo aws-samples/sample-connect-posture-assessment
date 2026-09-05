@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"
+        onerror="console.error('Failed to load Chart.js from primary CDN'); loadChartJsFallback();"></script>
+    <script>
+        function loadChartJsFallback() {
+            console.log('Loading Chart.js from fallback CDN...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+            script.onerror = function () {
+                console.error('Failed to load Chart.js from fallback CDN');
+                setTimeout(() => {
+                    const chartContainers = document.querySelectorAll('.chart-container');
+                    chartContainers.forEach(container => {
+                        container.textContent = '';
+                        const fallback = document.createElement('div');
+                        fallback.style.cssText = 'display: flex; align-items: center; justify-content: center; height: 300px; color: #666; font-style: italic; text-align: center; padding: 20px;';
+                        fallback.textContent = 'Charts unavailable — Chart library could not be loaded';
+                        container.appendChild(fallback);
+                    });
+                }, 100);
+            };
+            document.head.appendChild(script);
+        }
+
+        // Add dark mode support
+        function initDarkMode() {
+            const savedPreference = localStorage.getItem('darkMode');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedPreference !== null) {
+                document.body.classList.toggle('dark-mode', savedPreference === 'true');
+            } else if (systemPrefersDark) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        // Initialize dark mode on page load
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    </script>
+    <style>
+        {{ embedded_css | safe }}
+    </style>
+</head>
+
+<body>
+    {% include 'partials/header.html' %}
+
+    <div class="container">
+        {% include 'partials/executive_summary.html' %}
+        {% include 'partials/charts.html' %}
+        {% include 'partials/journey_map.html' %}
+        {% include 'partials/findings.html' %}
+
+        <!-- Assessment Summary -->
+        <section class="executive-summary">
+            <h2><i class="fas fa-clipboard-check"></i> Assessment Summary</h2>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <p class="card-value">{{ assessment.summary.total_checks }}</p>
+                    <p class="card-label">Total Findings</p>
+                </div>
+                <div class="summary-card success">
+                    <p class="card-value">{{ assessment.summary.passed_checks }}</p>
+                    <p class="card-label">Passed</p>
+                </div>
+                <div class="summary-card critical">
+                    <p class="card-value">{{ assessment.summary.failed_checks }}</p>
+                    <p class="card-label">Failed</p>
+                </div>
+                <div class="summary-card warning">
+                    <p class="card-value">{{ assessment.summary.error_checks }}</p>
+                    <p class="card-label">Errors</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Raw Data Section (optional) -->
+    {% if raw_data %}
+    <div class="container raw-data-container">
+        <section class="raw-data-section">
+            <h2><i class="fas fa-code"></i> Raw Assessment Data</h2>
+            <details>
+                <summary class="raw-data-summary">
+                    <strong>Click to view raw JSON data</strong>
+                </summary>
+                <pre class="raw-data-content"><code>{{ raw_data }}</code></pre>
+            </details>
+        </section>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="report-footer">
+        <div class="container">
+            <p class="mb-0">Amazon Connect Assessment Tool - Generated on {{ generation_timestamp | format_datetime }}
+            </p>
+            <p class="mb-0">This report contains {{ findings | length }} findings across {{ instances | length }}
+                Connect instances</p>
+            <p class="mt-2 report-footer-tip">
+                <i class="fas fa-info-circle"></i> Tip: Use the filter controls above to narrow down findings
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Add export functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            // Export JSON button
+            const exportJsonBtn = document.getElementById('export-json');
+            if (exportJsonBtn) {
+                exportJsonBtn.addEventListener('click', function () {
+                    // This will be handled by the controller
+                    if (window.assessmentReportController) {
+                        window.assessmentReportController.exportData();
+                    }
+                });
+            }
+
+            // Export PDF — trigger browser print (save as PDF from print dialog)
+            const exportPdfBtn = document.getElementById('export-pdf');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function () {
+                    window.print();
+                });
+            }
+
+            // Export JSON — download findings as a JSON file
+            const exportJsonDlBtn = document.getElementById('export-json');
+            if (exportJsonDlBtn) {
+                exportJsonDlBtn.addEventListener('click', function () {
+                    if (window.assessmentReportController) {
+                        window.assessmentReportController.exportData();
+                    } else {
+                        // Fallback: extract chart-data JSON and download it
+                        const dataEl = document.getElementById('chart-data');
+                        if (dataEl) {
+                            const blob = new Blob([dataEl.textContent], {type: 'application/json'});
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'assessment_findings.json';
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }
+                    }
+                });
+            }
+
+            // Export CSV — download findings as CSV
+            const exportCsvBtn = document.getElementById('export-csv');
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function () {
+                    const cards = document.querySelectorAll('.finding-card');
+                    let csv = 'Check Name,Severity,Status,Resource ID,Description\n';
+                    cards.forEach(function(card) {
+                        const name = (card.dataset.title || '').replace(/"/g, '""');
+                        const severity = card.dataset.severity || '';
+                        const status = card.dataset.status || '';
+                        const resource = card.dataset.instance || '';
+                        const desc = (card.dataset.description || '').replace(/"/g, '""').substring(0, 200);
+                        csv += `"${name}","${severity}","${status}","${resource}","${desc}"\n`;
+                    });
+                    const blob = new Blob([csv], {type: 'text/csv'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'assessment_findings.csv';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            // Export HTML — download this report file itself
+            const exportHtmlBtn = document.getElementById('export-html');
+            if (exportHtmlBtn) {
+                exportHtmlBtn.addEventListener('click', function () {
+                    const html = document.documentElement.outerHTML;
+                    const blob = new Blob([html], {type: 'text/html'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'assessment_report.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            }
+        });
+    </script>
+
+    {# `embedded_js` is not assessment data: it is the static, developer-authored
+       report-controller.js read verbatim off disk by _load_external_js(). No
+       attacker-influenced input reaches this block. Dynamic assessment data is
+       instead emitted into <script type="application/json"> islands (charts.html,
+       journey_map.html) with `</` escaped, then JSON.parse'd — never executed as
+       script. #}
+    <script>{{ embedded_js | safe }}</script> {# nosemgrep #}
+
+    <script>
+        // -----------------------------------------------------------------
+        // Caller Journey Map — interactive, phone-number driven.
+        //
+        // The template ships:
+        //   * two <select> dropdowns (instance + phone)
+        //   * an empty diagram panel
+        //   * a <script type="application/json"> data island carrying one
+        //     entry per (instance, phone) pair that terminates on a flow.
+        //     Each entry's `diagram_html` is a fully server-rendered,
+        //     already-positioned diagram (see journey/renderer.py) — this
+        //     script does no layout of its own, it only swaps that markup
+        //     into the panel and applies the zoom transform.
+        //
+        // This initializer:
+        //   1. Loads the JSON island, populates the instance dropdown,
+        //      auto-selects the first entry, and renders its diagram.
+        //   2. Wires change handlers so switching either dropdown swaps
+        //      the diagram in the panel without a page reload.
+        // -----------------------------------------------------------------
+        (function initializeJourneyMap() {
+            var section = document.getElementById('journey-map-section');
+            if (!section) return;
+            var dataIsland = document.getElementById('journey-map-data');
+            var instanceSelect = document.getElementById('journey-map-instance-select');
+            var phoneSelect = document.getElementById('journey-map-phone-select');
+            var panel = document.getElementById('journey-map-panel');
+            var inspector = document.getElementById('journey-map-inspector');
+            var inspectorTitle = document.getElementById('journey-map-inspector-title');
+            var inspectorSummary = document.getElementById('journey-map-inspector-summary');
+            var inspectorScope = document.getElementById('journey-map-inspector-scope');
+            var inspectorScopeHeading = document.getElementById(
+                'journey-map-inspector-scope-heading'
+            );
+            var inspectorScopeList = document.getElementById('journey-map-inspector-scope-list');
+            var inspectorAi = document.getElementById('journey-map-inspector-ai');
+            var inspectorAiIdentity = document.getElementById('journey-map-inspector-ai-identity');
+            var inspectorAiContext = document.getElementById('journey-map-inspector-ai-context');
+            var inspectorStatus = document.getElementById('journey-map-inspector-status');
+            var inspectorClose = document.getElementById('journey-map-inspector-close');
+            var currentModel = null;
+            var lastInspectorTrigger = null;
+            if (!dataIsland || !instanceSelect || !phoneSelect || !panel) return;
+
+            // Zoom controls are optional — guard individually so an older
+            // cached report (or a future template without them) still
+            // gets a working diagram, just without zoom controls.
+            var zoomInBtn = document.getElementById('journey-map-zoom-in');
+            var zoomOutBtn = document.getElementById('journey-map-zoom-out');
+            var zoomResetBtn = document.getElementById('journey-map-zoom-reset');
+            var zoomLevelLabel = document.getElementById('journey-map-zoom-level');
+            var downloadSvgBtn = document.getElementById('journey-map-download-svg');
+            var downloadPngBtn = document.getElementById('journey-map-download-png');
+            var downloadDrawioBtn = document.getElementById('journey-map-download-drawio');
+            var exportStatus = document.getElementById('journey-map-export-status');
+            var currentScale = 1;
+            var exportSelectionToken = 0;
+            var MIN_SCALE = 0.2;
+            var MAX_SCALE = 3;
+            var ZOOM_STEP = 0.15;
+            var MAX_PNG_DIMENSION = 8192;
+            var MAX_PNG_PIXELS = 32000000;
+
+            var entries;
+            try {
+                entries = JSON.parse(dataIsland.textContent || '[]');
+            } catch (e) {
+                console.warn('Journey Map: bad JSON in data island:', e);
+                return;
+            }
+            if (!Array.isArray(entries) || entries.length === 0) return;
+
+            // Index entries by instance for fast dropdown population.
+            var byInstance = {};
+            entries.forEach(function (entry) {
+                var key = entry.instance_id;
+                if (!byInstance[key]) byInstance[key] = [];
+                byInstance[key].push(entry);
+            });
+
+            function phoneLabel(entry) {
+                var num = entry.phone_number || '(unnamed)';
+                var type = entry.phone_type || '';
+                var country = entry.phone_country_code || '';
+                var suffix = [];
+                if (type) suffix.push(type.replace('_', ' '));
+                if (country) suffix.push(country);
+                if (entry.phone_description) suffix.push(entry.phone_description);
+                return suffix.length ? num + ' — ' + suffix.join(' · ') : num;
+            }
+
+            function populatePhoneSelect(instanceId) {
+                var list = byInstance[instanceId] || [];
+                phoneSelect.textContent = '';
+                list.forEach(function (entry, idx) {
+                    var opt = document.createElement('option');
+                    opt.value = String(idx);
+                    opt.textContent = phoneLabel(entry);
+                    phoneSelect.appendChild(opt);
+                });
+                phoneSelect.disabled = list.length <= 1;
+            }
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
+            // Allowlist sanitizer for the journey-map panel markup. The panel
+            // mixes locally-escaped values (via escapeHtml) with server-
+            // generated structural markup from journey/renderer.py, which
+            // itself HTML-escapes every dynamic value it embeds and never
+            // places dynamic content inside an attribute (only inline
+            // `style="left:...px"` pixel coordinates it computes itself, and
+            // SVG path/geometry attributes it also computes itself — see the
+            // module docstring). Rather than trust either source and assign a
+            // raw string to innerHTML, we parse the markup inertly (DOMParser
+            // runs no script and loads no resources) and rebuild it as a node
+            // tree in which only known-structural tags and attributes
+            // survive — any script tag, event-handler attribute (onerror,
+            // onclick, …), or unknown element is dropped. Returns a
+            // DocumentFragment safe to appendChild.
+            var PANEL_ALLOWED_TAGS = {
+                DIV: true, SPAN: true, P: true, UL: true, LI: true,
+                STRONG: true, EM: true, CODE: true, H3: true, I: true, PRE: true,
+                BUTTON: true, SVG: true, PATH: true
+            };
+            var PANEL_ALLOWED_ATTRS = {
+                'class': true, 'aria-hidden': true, 'style': true,
+                // Native browser tooltip on hover — journey/renderer.py
+                // escapes every value it places here (see _node_tooltip /
+                // _edge_label_tooltip). `title` is inert: unlike
+                // on*="..." handlers or href="javascript:...", the browser
+                // never evaluates it as script or navigates because of it,
+                // so allowing it doesn't reopen the injection surface this
+                // sanitizer exists to close.
+                'title': true, 'type': true, 'aria-label': true,
+                'aria-pressed': true, 'data-jm-node-key': true,
+                'data-jm-edge-key': true,
+                // SVG geometry — every value in these attributes is a plain
+                // number or an "M/H/V ..." path string computed by
+                // journey/renderer.py's layout code, never derived from flow
+                // content (see that module's security note).
+                'width': true, 'height': true, 'viewbox': true, 'd': true
+            };
+            var STYLE_VALUE_RE = /^[a-z0-9:;.,%#\s-]*$/i;
+
+            function sanitizeStyleAttr(value) {
+                // The only style attribute this panel ever emits is a plain
+                // `left:Npx;top:Npx;` (or `width/height`) pixel-coordinate
+                // string. Reject anything that doesn't match that narrow
+                // character set — in particular `url(...)`, `expression(...)`,
+                // and any other CSS value that could reference external
+                // content or execute code.
+                return STYLE_VALUE_RE.test(value || '') ? value : '';
+            }
+
+            function sanitizePanelHtml(dirty) {
+                var frag = document.createDocumentFragment();
+                var root = new DOMParser()
+                    .parseFromString('<body>' + (dirty || '') + '</body>', 'text/html').body;
+                // Iterative pre-order walk (no recursion): prune disallowed
+                // elements and strip disallowed attributes in place.
+                var stack = [root];
+                while (stack.length) {
+                    var node = stack.pop();
+                    var child = node.firstChild;
+                    while (child) {
+                        var next = child.nextSibling;
+                        if (child.nodeType === Node.ELEMENT_NODE) {
+                            // HTML elements report tagName uppercased; SVG/foreign
+                            // elements (svg, path) report it in source case
+                            // (lowercase here) — normalize before the allowlist
+                            // lookup so <svg>/<path> aren't mistakenly dropped.
+                            if (!PANEL_ALLOWED_TAGS[child.tagName.toUpperCase()]) {
+                                child.remove();
+                            } else {
+                                Array.prototype.slice.call(child.attributes).forEach(function (attr) {
+                                    var name = attr.name.toLowerCase();
+                                    if (!PANEL_ALLOWED_ATTRS[name]) {
+                                        child.removeAttribute(attr.name);
+                                    } else if (name === 'style') {
+                                        var safe = sanitizeStyleAttr(attr.value);
+                                        if (safe) {
+                                            child.setAttribute('style', safe);
+                                        } else {
+                                            child.removeAttribute('style');
+                                        }
+                                    } else if ((name === 'data-jm-node-key' && !/^n\d+$/.test(attr.value)) ||
+                                               (name === 'data-jm-edge-key' && !/^e\d+$/.test(attr.value))) {
+                                        child.removeAttribute(attr.name);
+                                    } else if (name === 'type' && attr.value !== 'button') {
+                                        child.removeAttribute(attr.name);
+                                    } else if (name === 'aria-pressed' &&
+                                               attr.value !== 'true' && attr.value !== 'false') {
+                                        child.removeAttribute(attr.name);
+                                    }
+                                });
+                                stack.push(child);
+                            }
+                        } else if (child.nodeType !== Node.TEXT_NODE) {
+                            child.remove(); // comments, processing instructions, etc.
+                        }
+                        child = next;
+                    }
+                }
+                while (root.firstChild) frag.appendChild(root.firstChild);
+                return frag;
+            }
+
+            // Replace a container's children with a sanitized node tree built
+            // from an HTML string — the copy-safe alternative to `el.innerHTML
+            // = str`. Used for every dynamic write into the journey panel.
+            function setSanitizedHtml(el, htmlString) {
+                el.textContent = '';
+                el.appendChild(sanitizePanelHtml(htmlString));
+            }
+
+            function closeInspector(restoreFocus) {
+                if (!inspector) return;
+                inspector.hidden = true;
+                panel.querySelectorAll('[aria-pressed="true"]').forEach(function (control) {
+                    control.setAttribute('aria-pressed', 'false');
+                });
+                if (restoreFocus && lastInspectorTrigger && document.contains(lastInspectorTrigger)) {
+                    lastInspectorTrigger.focus();
+                }
+                lastInspectorTrigger = null;
+            }
+
+            function inspectJourneyElement(kind, key, trigger) {
+                if (!inspector || !inspectorTitle || !inspectorSummary || !currentModel) return;
+                var collection = kind === 'node' ? currentModel.nodes : currentModel.edges;
+                var detail = collection && collection[key];
+                if (!detail) return;
+
+                panel.querySelectorAll('[aria-pressed="true"]').forEach(function (control) {
+                    control.setAttribute('aria-pressed', 'false');
+                });
+                trigger.setAttribute('aria-pressed', 'true');
+                lastInspectorTrigger = trigger;
+                inspectorTitle.textContent = detail.title || 'Journey details';
+
+                var scope = kind === 'node' && Array.isArray(detail.scope) ? detail.scope : [];
+                var ai = kind === 'node' && detail.ai ? detail.ai : null;
+                var summary = '';
+                if (kind === 'node') {
+                    summary = detail.summary || '';
+                } else {
+                    var source = currentModel.nodes && currentModel.nodes[detail.source];
+                    var target = currentModel.nodes && currentModel.nodes[detail.target];
+                    var sourceTitle = source ? source.title : 'the previous step';
+                    var targetTitle = target ? target.title : 'the next step';
+                    var movement = detail.is_feedback ? 'returns' : 'continues';
+                    var routePath = 'This route ' + movement + ' from ' + sourceTitle +
+                        ' to ' + targetTitle + '.';
+                    summary = detail.summary ? detail.summary + ' ' + routePath : routePath;
+                }
+                inspectorSummary.textContent = summary;
+                inspectorSummary.hidden = !summary;
+
+                if (inspectorScope && inspectorScopeList) {
+                    inspectorScopeList.textContent = '';
+                    if (inspectorScopeHeading) {
+                        var isGroup = Boolean(detail.is_group);
+                        inspectorScopeHeading.textContent = isGroup ?
+                            'What this setup does' : 'What this block does';
+                    }
+                    scope.forEach(function (item) {
+                        var listItem = document.createElement('li');
+                        listItem.textContent = item;
+                        inspectorScopeList.appendChild(listItem);
+                    });
+                    inspectorScope.hidden = scope.length === 0;
+                }
+
+                if (inspectorAi && inspectorAiIdentity && inspectorAiContext) {
+                    var aiIdentity = ai && ai.identity ? ai.identity : '';
+                    var aiContext = [];
+                    if (ai && ai.technology) aiContext.push(ai.technology);
+                    if (ai && ai.subtype) aiContext.push(ai.subtype);
+                    if (ai && ai.alias) aiContext.push('Alias: ' + ai.alias);
+                    inspectorAiIdentity.textContent = aiIdentity;
+                    inspectorAiContext.textContent = aiContext.join(' · ');
+                    inspectorAi.hidden = !aiIdentity;
+                }
+
+                inspector.hidden = false;
+                if (inspectorStatus) inspectorStatus.textContent =
+                    'Showing details for ' + (detail.title || 'journey element');
+            }
+
+            function renderPanel(entry) {
+                closeInspector(false);
+                exportSelectionToken += 1;
+                currentModel = entry && entry.diagram_model ? entry.diagram_model : null;
+                if (!entry) {
+                    updateExportButtons(null);
+                    setSanitizedHtml(panel, '<div class="journey-map-empty-selection">' +
+                        'No phone number selected.</div>');
+                    return;
+                }
+                // Header strip so the reader can see what they're looking
+                // at without cross-referencing the dropdowns.
+                var header = '<div class="journey-map-flow-header">' +
+                    '<h3>' + escapeHtml(entry.flow_name) + '</h3>' +
+                    '<div class="journey-map-flow-meta">' +
+                    '<span class="journey-map-badge journey-map-badge-signal">' +
+                    '<i class="fas fa-phone"></i> ' + escapeHtml(entry.phone_number) +
+                    (entry.phone_type ? ' · ' + escapeHtml(entry.phone_type.replace('_', ' ')) : '') +
+                    '</span>' +
+                    '<span class="journey-map-badge journey-map-badge-flow-id">' +
+                    escapeHtml(entry.flow_id) + '</span>' +
+                    '</div></div>';
+
+                // Everything written into the panel — the locally-escaped
+                // header and the server-rendered diagram_html — goes through
+                // the allowlist sanitizer and is inserted as an inert node
+                // tree. Nothing is concatenated raw into innerHTML. The
+                // diagram itself is wrapped in .journey-map-diagram-scale, a
+                // plain <div> the zoom toolbar applies a CSS transform to —
+                // the header stays outside so zooming the diagram never
+                // shrinks the flow name / phone badges.
+                var diagramHtml =
+                    '<div class="journey-map-diagram-scale">' +
+                    (entry.diagram_html || '') +
+                    '</div>';
+                setSanitizedHtml(panel, header + diagramHtml);
+                resetZoom();
+                updateExportButtons(entry);
+            }
+
+            function currentEntry() {
+                var instanceId = instanceSelect.value;
+                var list = byInstance[instanceId] || [];
+                var idx = parseInt(phoneSelect.value, 10);
+                if (isNaN(idx)) idx = 0;
+                return list[idx];
+            }
+
+            function exportFormats(entry) {
+                return entry && entry.exports && entry.exports.formats ?
+                    entry.exports.formats : {};
+            }
+
+            function setExportStatus(message, isError) {
+                if (!exportStatus) return;
+                exportStatus.textContent = message || '';
+                exportStatus.classList.toggle('is-error', Boolean(isError));
+            }
+
+            function updateExportButtons(entry) {
+                var formats = exportFormats(entry);
+                if (downloadSvgBtn) downloadSvgBtn.disabled = !formats.svg;
+                if (downloadPngBtn) downloadPngBtn.disabled = !formats.svg;
+                if (downloadDrawioBtn) downloadDrawioBtn.disabled = !formats.drawio;
+                setExportStatus('', false);
+            }
+
+            function safeFilenamePart(value) {
+                var text = String(value || '');
+                if (text.normalize) text = text.normalize('NFKD');
+                text = text.replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[\u0000-\u001f\u007f]/g, '')
+                    .replace(/[^A-Za-z0-9._-]+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^[._-]+|[._-]+$/g, '')
+                    .slice(0, 80);
+                if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(text)) text = '';
+                return text || 'journey';
+            }
+
+            function exportFilename(entry, extension) {
+                var flowName = safeFilenamePart(entry && entry.flow_name);
+                var flowId = safeFilenamePart(entry && entry.flow_id);
+                return 'caller-journey-' + flowName + '-' + flowId + '.' + extension;
+            }
+
+            function downloadBlob(blob, filename) {
+                if (!window.URL || !window.URL.createObjectURL) {
+                    throw new Error('This browser does not support local file downloads.');
+                }
+                var url = window.URL.createObjectURL(blob);
+                try {
+                    var link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.hidden = true;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                } finally {
+                    window.setTimeout(function () {
+                        window.URL.revokeObjectURL(url);
+                    }, 1000);
+                }
+            }
+
+            function downloadTextExport(formatName, extension) {
+                var entry = currentEntry();
+                var format = exportFormats(entry)[formatName];
+                if (!format || !format.content) {
+                    setExportStatus(formatName.toUpperCase() + ' export is unavailable.', true);
+                    return;
+                }
+                try {
+                    downloadBlob(
+                        new Blob([format.content], { type: format.media_type || 'text/plain;charset=utf-8' }),
+                        exportFilename(entry, extension)
+                    );
+                    setExportStatus(formatName.toUpperCase() + ' download started.', false);
+                } catch (error) {
+                    console.warn('Journey Map export failed:', error);
+                    setExportStatus('Could not download ' + formatName.toUpperCase() + '.', true);
+                }
+            }
+
+            function downloadPngExport() {
+                var entry = currentEntry();
+                var svg = exportFormats(entry).svg;
+                if (!svg || !svg.content) {
+                    setExportStatus('PNG export is unavailable.', true);
+                    return;
+                }
+                var sourceWidth = Number(svg.width);
+                var sourceHeight = Number(svg.height);
+                if (!isFinite(sourceWidth) || !isFinite(sourceHeight) ||
+                    sourceWidth <= 0 || sourceHeight <= 0) {
+                    setExportStatus('PNG dimensions are invalid.', true);
+                    return;
+                }
+
+                var scale = Math.min(
+                    1,
+                    MAX_PNG_DIMENSION / sourceWidth,
+                    MAX_PNG_DIMENSION / sourceHeight,
+                    Math.sqrt(MAX_PNG_PIXELS / (sourceWidth * sourceHeight))
+                );
+                var outputWidth = Math.max(1, Math.floor(sourceWidth * scale));
+                var outputHeight = Math.max(1, Math.floor(sourceHeight * scale));
+                var selectionToken = exportSelectionToken;
+                var sourceUrl = window.URL.createObjectURL(
+                    new Blob([svg.content], { type: 'image/svg+xml;charset=utf-8' })
+                );
+                var image = new Image();
+                if (downloadPngBtn) {
+                    downloadPngBtn.disabled = true;
+                    downloadPngBtn.setAttribute('aria-busy', 'true');
+                }
+                setExportStatus('Preparing PNG…', false);
+
+                function finishPng(message, isError) {
+                    window.URL.revokeObjectURL(sourceUrl);
+                    if (downloadPngBtn) {
+                        downloadPngBtn.removeAttribute('aria-busy');
+                        downloadPngBtn.disabled = !exportFormats(currentEntry()).svg;
+                    }
+                    if (selectionToken === exportSelectionToken) {
+                        setExportStatus(message, isError);
+                    }
+                }
+
+                image.onload = function () {
+                    try {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = outputWidth;
+                        canvas.height = outputHeight;
+                        var context = canvas.getContext('2d');
+                        if (!context) throw new Error('Canvas rendering is unavailable.');
+                        context.fillStyle = '#ffffff';
+                        context.fillRect(0, 0, outputWidth, outputHeight);
+                        context.drawImage(image, 0, 0, outputWidth, outputHeight);
+                        canvas.toBlob(function (blob) {
+                            if (!blob) {
+                                finishPng('Could not create the PNG image.', true);
+                                return;
+                            }
+                            try {
+                                downloadBlob(blob, exportFilename(entry, 'png'));
+                                finishPng('PNG download started.', false);
+                            } catch (error) {
+                                console.warn('Journey Map PNG download failed:', error);
+                                finishPng('Could not download PNG.', true);
+                            }
+                        }, 'image/png');
+                    } catch (error) {
+                        console.warn('Journey Map PNG conversion failed:', error);
+                        finishPng('Could not create the PNG image.', true);
+                    }
+                };
+                image.onerror = function () {
+                    finishPng('Could not read the SVG for PNG conversion.', true);
+                };
+                image.src = sourceUrl;
+            }
+
+            // ---------------------------------------------------------
+            // Zoom controls — a CSS transform: scale() on the
+            // .journey-map-diagram-scale wrapper the diagram was just
+            // written into. Rendering at native size (useMaxWidth:
+            // false, set above) means a wide flow can be wider than the
+            // panel; scaling down here is how the reader brings it back
+            // into view without Mermaid re-laying-out anything.
+            // ---------------------------------------------------------
+            function applyZoom() {
+                var scaleEl = panel.querySelector('.journey-map-diagram-scale');
+                if (scaleEl) {
+                    scaleEl.style.transform = 'scale(' + currentScale + ')';
+                }
+                if (zoomLevelLabel) {
+                    zoomLevelLabel.textContent = Math.round(currentScale * 100) + '%';
+                }
+                if (zoomOutBtn) zoomOutBtn.disabled = currentScale <= MIN_SCALE;
+                if (zoomInBtn) zoomInBtn.disabled = currentScale >= MAX_SCALE;
+            }
+
+            function resetZoom() {
+                currentScale = 1;
+                applyZoom();
+            }
+
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', function () {
+                    currentScale = Math.min(MAX_SCALE, currentScale + ZOOM_STEP);
+                    applyZoom();
+                });
+            }
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', function () {
+                    currentScale = Math.max(MIN_SCALE, currentScale - ZOOM_STEP);
+                    applyZoom();
+                });
+            }
+            if (zoomResetBtn) {
+                zoomResetBtn.addEventListener('click', function () {
+                    // "Fit to window" — shrink until the diagram's natural
+                    // width fits the panel's visible width, capped at 100%
+                    // so a small diagram never gets stretched up past its
+                    // native size. scrollWidth reflects the element's own
+                    // layout size and is unaffected by a CSS transform
+                    // applied to it (transforms are paint-only), so this
+                    // always reads the diagram's true, unscaled width —
+                    // no need to correct for the current zoom level.
+                    var scaleEl = panel.querySelector('.journey-map-diagram-scale');
+                    if (!scaleEl) {
+                        resetZoom();
+                        return;
+                    }
+                    var naturalWidth = scaleEl.scrollWidth;
+                    var available = panel.clientWidth;
+                    if (naturalWidth > 0 && available > 0) {
+                        currentScale = Math.max(MIN_SCALE, Math.min(1, available / naturalWidth));
+                    } else {
+                        currentScale = 1;
+                    }
+                    applyZoom();
+                });
+            }
+            // The transform: scale() applies to whichever child is
+            // visible — the Mermaid <pre>/<svg> or the JS-free fallback
+            // chain — so the zoom toolbar stays useful in both modes;
+            // no need to hide it when Mermaid didn't load.
+
+            if (downloadSvgBtn) {
+                downloadSvgBtn.addEventListener('click', function () {
+                    downloadTextExport('svg', 'svg');
+                });
+            }
+            if (downloadPngBtn) {
+                downloadPngBtn.addEventListener('click', downloadPngExport);
+            }
+            if (downloadDrawioBtn) {
+                downloadDrawioBtn.addEventListener('click', function () {
+                    downloadTextExport('drawio', 'drawio');
+                });
+            }
+
+            panel.addEventListener('click', function (event) {
+                var target = event.target;
+                var control = target && target.closest ?
+                    target.closest('button[data-jm-node-key], button[data-jm-edge-key]') : null;
+                if (!control || !panel.contains(control)) return;
+                var nodeKey = control.getAttribute('data-jm-node-key');
+                var edgeKey = control.getAttribute('data-jm-edge-key');
+                inspectJourneyElement(nodeKey ? 'node' : 'edge', nodeKey || edgeKey, control);
+            });
+            if (inspectorClose) {
+                inspectorClose.addEventListener('click', function () {
+                    closeInspector(true);
+                });
+            }
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && inspector && !inspector.hidden) {
+                    closeInspector(true);
+                }
+            });
+
+            instanceSelect.addEventListener('change', function () {
+                populatePhoneSelect(instanceSelect.value);
+                renderPanel(currentEntry());
+            });
+            phoneSelect.addEventListener('change', function () {
+                renderPanel(currentEntry());
+            });
+
+            // Initial render — first instance, first phone.
+            populatePhoneSelect(instanceSelect.value);
+            renderPanel(currentEntry());
+        })();
+    </script>
+</body>
+
+</html>

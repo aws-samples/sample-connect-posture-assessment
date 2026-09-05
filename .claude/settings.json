@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty'); case \"$f\" in *.py) RUFF=ruff; [ -x \"$CLAUDE_PROJECT_DIR/venv/bin/ruff\" ] && RUFF=\"$CLAUDE_PROJECT_DIR/venv/bin/ruff\"; [ -x \"$CLAUDE_PROJECT_DIR/.venv/bin/ruff\" ] && RUFF=\"$CLAUDE_PROJECT_DIR/.venv/bin/ruff\"; if ! out=$(\"$RUFF\" check \"$f\" 2>&1 && \"$RUFF\" format --check \"$f\" 2>&1); then echo \"ruff found issues in $f (run: ruff check --fix \\\"$f\\\" && ruff format \\\"$f\\\"):\"; echo \"$out\"; exit 2; fi ;; esac",
+            "statusMessage": "Running ruff on edited Python file..."
+          }
+        ]
+      }
+    ]
+  }
+}

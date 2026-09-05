@@ -1,0 +1,146 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amazon-connect-assessment"
+version = "0.1.0"
+description = "Assess Amazon Connect deployments against AWS Well-Architected Framework best practices"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT-0"}
+authors = [
+    {name = "Amazon Connect Assessment Team"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Software Development :: Quality Assurance",
+]
+# Dependencies are pinned to the exact versions the test suite runs against so
+# local, CI, and downstream installs resolve to an identical, verified dependency
+# tree (supply-chain reproducibility). Bump these deliberately and re-run tests.
+dependencies = [
+    "boto3==1.43.36",
+    "botocore==1.43.36",
+    "jinja2==3.1.6",
+    "pyyaml==6.0.3",
+    # Finding descriptions and remediations are authored as markdown so we
+    # can use paragraphs, bullet lists, fenced code blocks, and inline
+    # code samples without rebuilding a mini renderer. The HTML report
+    # runs the string through a Jinja filter that calls markdown-it-py
+    # with raw HTML disabled — CommonMark subset, no XSS surface.
+    "markdown-it-py==4.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Exact pin: ruff's formatter is not style-stable across versions, so an
+    # exact version is the only way local, CI, and pre-commit produce identical
+    # output. Keep in sync with `rev` in .pre-commit-config.yaml.
+    "ruff==0.15.20",
+    "mypy==1.17.1",
+    "pre-commit==4.6.0",
+    "boto3-stubs[connect,cloudwatch,s3,sts,iam]==1.43.36",
+]
+test = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "hypothesis==6.155.7",
+    "moto[connect,cloudwatch,s3,sts,iam]==5.2.2",
+]
+screenshots = [
+    "playwright==1.55.0",
+    "pillow==11.3.0",
+]
+
+[project.scripts]
+amazon-connect-assessment = "amazon_connect_assessment.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["amazon_connect_assessment*"]
+
+[tool.setuptools.package-data]
+amazon_connect_assessment = [
+    "templates/html/*.html",
+    "templates/html/partials/*.html",
+    "templates/css/*.css",
+    "templates/js/*.js",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--cov=amazon_connect_assessment",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=65",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "property: Property-based tests",
+    "slow: Slow running tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_errors = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+namespace_packages = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = [
+    "moto.*",
+    "botocore.*",
+    "boto3.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes (flake8 equivalents), I: import sorting (isort
+# replacement). E203/E501 are handled by the formatter, so they stay off here.
+select = ["E", "W", "F", "I"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["amazon_connect_assessment"]
+
+[tool.coverage.run]
+source = ["amazon_connect_assessment"]
+omit = ["*/tests/*", "*/venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

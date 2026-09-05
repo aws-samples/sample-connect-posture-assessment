@@ -1,0 +1,26 @@
+<!-- Charts Section -->
+<section class="charts-container">
+    <div class="chart-card">
+        <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Check Status Distribution</h3>
+        <div class="chart-container">
+            <canvas id="status-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Failed Findings by Severity</h3>
+        <div class="chart-container">
+            <canvas id="severity-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3 class="chart-title"><i class="fas fa-project-diagram"></i> Findings by Pillar</h3>
+        <div class="chart-container">
+            <canvas id="pillar-chart"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- Hidden Chart Data for JavaScript -->
+<script type="application/json" id="chart-data">{{ charts_data_json | safe }}</script>

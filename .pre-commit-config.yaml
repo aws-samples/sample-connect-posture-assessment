@@ -1,0 +1,52 @@
+# Pre-commit hooks mirroring the CI lint gates (ci.yml):
+# ruff check (lint + import order), ruff format, and mypy.
+#
+# Setup (one-time, in your venv):
+#   pip install -e ".[dev,test]" pre-commit
+#   pre-commit install      # auto-run on `git commit`
+#
+# NOTE: in environments where `core.hooksPath` is set globally, `pre-commit
+# install` refuses to run so it does not clobber that hook path. There, run the
+# checks manually before committing:
+#   pre-commit run --all-files   # all files
+#   pre-commit run               # staged files only
+# CI (ci.yml) enforces the same gates regardless.
+#
+# Ruff rev MUST match the exact `ruff==` pin in pyproject.toml so local, CI, and
+# pre-commit all produce identical lint/format output. Bump both together
+# (`pre-commit autoupdate` moves the rev; update pyproject.toml to match).
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      # Lint + import ordering (replaces flake8 + isort). --fix auto-applies
+      # safe fixes; the run fails if anything was changed so you re-stage.
+      - id: ruff
+        name: ruff check
+        args: [--fix]
+        types_or: [python, pyi]
+      # Formatter (replaces black).
+      - id: ruff-format
+        name: ruff format
+        args: [--check]
+        types_or: [python, pyi]
+
+  # mypy runs as a local hook so it uses the project's own mypy + boto3-stubs
+  # (installed via the dev extra) and the [tool.mypy] config in pyproject.toml,
+  # matching CI exactly.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+        args: [amazon_connect_assessment/, --ignore-missing-imports]
+
+  # Lightweight safety guards that never rewrite file contents.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict

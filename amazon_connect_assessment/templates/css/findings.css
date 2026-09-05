@@ -1,0 +1,1436 @@
+/* Modern Filter Controls - Cloudscape Design */
+.filter-controls {
+    background: var(--awsui-color-background-container-content);
+    padding: var(--space-m);
+    margin: var(--space-m) 0;
+    border-radius: var(--border-radius-item);
+    box-shadow: var(--shadow-container);
+    border: 1px solid var(--awsui-color-border-container-top);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-m);
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.filter-group label {
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    color: var(--awsui-color-text-body-default);
+    font-size: var(--font-size-body-m);
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.filter-select {
+    padding: var(--space-xs) var(--space-s);
+    border: 2px solid var(--awsui-color-border-container-top);
+    border-radius: var(--border-radius-item);
+    background: white;
+    min-width: 140px;
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    color: var(--awsui-color-text-body-default);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--awsui-color-border-item-focused);
+    box-shadow: 0 0 0 2px rgba(9, 114, 211, 0.25);
+}
+
+.filter-select:hover {
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: var(--space-xs);
+    margin-left: auto;
+}
+
+.btn {
+    padding: var(--space-xs) var(--space-m);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-button);
+    cursor: pointer;
+    font-size: var(--font-size-body-m);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.btn:hover::before {
+    transform: translateX(0);
+}
+
+.btn:focus {
+    outline: 2px solid var(--awsui-color-border-item-focused);
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background: var(--awsui-color-text-interactive-default);
+    color: white;
+    border-color: var(--awsui-color-text-interactive-default);
+}
+
+.btn-primary:hover {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--awsui-color-text-body-default);
+    border-color: var(--awsui-color-border-container-top);
+}
+
+.btn-secondary:hover {
+    background: var(--gray-50);
+    border-color: var(--awsui-color-border-item-focused);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Dark mode filter controls */
+body.dark-mode .filter-controls {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .filter-group label {
+    color: var(--dark-text);
+}
+
+body.dark-mode .filter-select {
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+body.dark-mode .btn-secondary {
+    background: var(--dark-surface);
+    color: var(--dark-text);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: var(--gray-700);
+}
+
+/* Modern Pillar Sections - Cloudscape Design */
+.pillar-sections-container {
+    background: var(--awsui-color-background-container-content);
+    margin: var(--space-xl) 0;
+    border-radius: var(--border-radius-container);
+    box-shadow: var(--shadow-container);
+    border: 1px solid var(--awsui-color-border-container-top);
+    overflow: hidden;
+    animation: slideInUp 0.5s ease-out;
+    transition: all 0.3s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab Navigation - Cloudscape Design */
+.pillar-tabs {
+    display: flex;
+    background: var(--awsui-color-background-container-header);
+    border-bottom: 2px solid var(--awsui-color-border-divider-default);
+    overflow-x: auto;
+    position: relative;
+    scrollbar-width: thin;
+}
+
+.pillar-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.pillar-tabs::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+.pillar-tabs::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: var(--border-radius-badge);
+}
+
+.pillar-tab {
+    flex: 1;
+    min-width: 200px;
+    padding: var(--space-m) var(--space-l);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-body-m);
+    font-weight: var(--font-weight-bold);
+    color: var(--awsui-color-text-body-secondary);
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+}
+
+.pillar-tab:hover {
+    background: rgba(9, 114, 211, 0.05);
+    color: var(--awsui-color-text-interactive-default);
+}
+
+.pillar-tab.active {
+    color: var(--awsui-color-text-interactive-default);
+    font-weight: var(--font-weight-heavy);
+    background: rgba(9, 114, 211, 0.08);
+    border-bottom: 3px solid var(--awsui-color-text-interactive-default);
+}
+
+.pillar-tab-icon {
+    font-size: var(--font-size-heading-xs);
+    transition: all 0.3s ease;
+}
+
+.pillar-tab-badge {
+    background: var(--gray-200);
+    color: var(--awsui-color-text-body-secondary);
+    padding: var(--space-xxs) var(--space-xs);
+    border-radius: var(--border-radius-badge);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    margin-left: var(--space-xs);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.pillar-tab.active .pillar-tab-badge {
+    background: var(--awsui-color-text-interactive-default);
+    color: white;
+    box-shadow: var(--shadow-container);
+}
+
+/* Dark mode pillar sections */
+body.dark-mode .pillar-sections-container {
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-xl);
+}
+
+body.dark-mode .pillar-tabs {
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #1a2436 100%);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark-mode .pillar-tabs::after {
+    background: linear-gradient(90deg, transparent, var(--dark-border), transparent);
+}
+
+body.dark-mode .pillar-tabs::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+}
+
+body.dark-mode .pillar-tabs::-webkit-scrollbar-thumb {
+    background: var(--gray-600);
+}
+
+body.dark-mode .pillar-tab {
+    color: var(--gray-400);
+}
+
+body.dark-mode .pillar-tab:hover {
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--primary-300);
+}
+
+body.dark-mode .pillar-tab.active {
+    color: var(--primary-300);
+    background: rgba(14, 165, 233, 0.15);
+}
+
+/* Tab Content */
+.pillar-tab-content {
+    display: none;
+    padding: var(--space-6);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.pillar-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pillar-section {
+    background: transparent;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
+}
+
+.pillar-header {
+    background: transparent;
+    padding: 0 0 var(--space-m) 0;
+    border-bottom: 2px solid var(--awsui-color-border-divider-default);
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+    margin-bottom: var(--space-xl);
+}
+
+.pillar-icon {
+    font-size: var(--font-size-heading-l);
+    color: var(--awsui-color-text-interactive-default);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-50);
+    border-radius: var(--border-radius-item);
+    box-shadow: var(--shadow-sm);
+}
+
+.pillar-title {
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-heading-xl);
+    font-weight: var(--font-weight-heavy);
+    color: var(--awsui-color-text-heading-default);
+    letter-spacing: -0.01em;
+}
+
+.pillar-stats {
+    margin-left: auto;
+    display: flex;
+    gap: var(--space-s);
+    font-size: var(--font-size-body-m);
+}
+
+.stat-badge {
+    padding: var(--space-xxs) var(--space-s);
+    border-radius: var(--border-radius-badge);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-body-s);
+    font-family: var(--font-family-base);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-badge.passed {
+    background: var(--success-50);
+    color: var(--awsui-color-text-status-success);
+    border: 1px solid var(--success-100);
+}
+
+.stat-badge.failed {
+    background: var(--error-50);
+    color: var(--awsui-color-text-status-error);
+    border: 1px solid var(--error-100);
+}
+
+/* Modern Finding Cards - Cloudscape Design */
+.findings-container {
+    padding: var(--space-xl);
+}
+
+.finding-card {
+    border: 2px solid var(--awsui-color-border-container-top);
+    border-radius: var(--border-radius-container);
+    margin-bottom: var(--space-xl);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--awsui-color-background-container-content);
+    position: relative;
+    box-shadow: var(--shadow-container);
+    transform: translateY(0);
+}
+
+.finding-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--gray-300);
+    transition: all 0.3s ease;
+}
+
+.finding-card.severity-critical::before {
+    background: var(--awsui-color-text-status-error);
+}
+
+.finding-card.severity-high::before {
+    background: var(--awsui-color-text-status-warning);
+}
+
+.finding-card.severity-medium::before {
+    background: var(--awsui-color-text-status-warning);
+}
+
+.finding-card.severity-low::before {
+    background: var(--awsui-color-text-interactive-default);
+}
+
+.finding-card:hover {
+    box-shadow: var(--shadow-panel);
+    transform: translateY(-4px);
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.finding-card:hover::before {
+    width: 8px;
+}
+
+.finding-header {
+    padding: var(--space-m) var(--space-xl);
+    background: var(--awsui-color-background-container-header);
+    border-bottom: 2px solid var(--awsui-color-border-divider-default);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+}
+
+.finding-title {
+    margin: 0;
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-heavy);
+    font-family: var(--font-family-base);
+    color: var(--awsui-color-text-heading-default);
+    letter-spacing: -0.01em;
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+.finding-badges {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+}
+
+.badge {
+    padding: var(--space-xxs) var(--space-s);
+    border-radius: var(--border-radius-badge);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    transition: all 0.3s ease;
+}
+
+.badge.severity-critical {
+    background: var(--awsui-color-text-status-error);
+    color: white;
+    box-shadow: 0 2px 4px rgba(217, 21, 21, 0.3);
+}
+
+.badge.severity-high {
+    background: var(--awsui-color-text-status-warning);
+    color: white;
+    box-shadow: 0 2px 4px rgba(141, 102, 5, 0.3);
+}
+
+.badge.severity-medium {
+    background: var(--warning-50);
+    color: var(--awsui-color-text-status-warning);
+    border-color: var(--warning-100);
+}
+
+.badge.severity-low {
+    background: var(--primary-50);
+    color: var(--awsui-color-text-interactive-default);
+    border-color: var(--primary-100);
+}
+
+.badge.status-pass {
+    background: var(--awsui-color-text-status-success);
+    color: white;
+    box-shadow: 0 2px 4px rgba(3, 127, 12, 0.3);
+}
+
+.badge.status-fail {
+    background: var(--awsui-color-text-status-error);
+    color: white;
+    box-shadow: 0 2px 4px rgba(217, 21, 21, 0.3);
+}
+
+.badge.status-error {
+    background: var(--warning-50);
+    color: var(--awsui-color-text-status-warning);
+    border-color: var(--warning-100);
+}
+
+.badge.status-skipped {
+    background: var(--gray-100);
+    color: var(--awsui-color-text-body-secondary);
+    border-color: var(--awsui-color-border-container-top);
+}
+
+/* NOT_APPLICABLE: the check ran and determined it doesn't apply to this
+ * instance (e.g. an ACGR sub-check when ACGR isn't configured). Rendered
+ * as a neutral outline badge so the reader can see the check was run
+ * without it competing for attention with real findings. */
+.badge.status-not_applicable {
+    background: transparent;
+    color: var(--awsui-color-text-body-secondary);
+    border: 1px dashed var(--awsui-color-border-container-top);
+    font-style: italic;
+}
+
+/* The whole finding-card fades when the check didn't apply: reduced
+ * opacity, muted background, italicized description. This deliberately
+ * makes N/A findings recede visually vs Fail/Pass cards. Users still
+ * see them (for auditability — 'yes, we did check that') but they
+ * don't compete for attention with real findings. On hover the card
+ * regains full opacity so it's easy to read the details when needed. */
+.finding-card[data-status="not_applicable"] {
+    opacity: 0.55;
+    background: var(--gray-50, #fafafa);
+    border-style: dashed;
+    transition: opacity 160ms ease-in-out;
+}
+
+.finding-card[data-status="not_applicable"] .finding-title {
+    color: var(--awsui-color-text-body-secondary);
+    font-weight: 500;
+}
+
+.finding-card[data-status="not_applicable"] .finding-description {
+    font-style: italic;
+    color: var(--awsui-color-text-body-secondary);
+}
+
+/* Left border indicator: a subtle dashed neutral instead of the severity
+ * strip Fail cards get. Signals the card is a distinct category. */
+.finding-card[data-status="not_applicable"]::before {
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--awsui-color-border-container-top) 0 4px,
+        transparent 4px 8px
+    );
+    opacity: 0.6;
+}
+
+.finding-card[data-status="not_applicable"]:hover {
+    opacity: 1;
+}
+
+body.dark-mode .finding-card[data-status="not_applicable"] {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.finding-content {
+    padding: var(--space-xl);
+}
+
+.finding-description {
+    margin-bottom: var(--space-m);
+    color: var(--awsui-color-text-body-default);
+    line-height: var(--line-height-body-m);
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    transition: all 0.3s ease;
+}
+
+.finding-remediation {
+    background: var(--primary-50);
+    border: 2px solid var(--primary-100);
+    border-radius: var(--border-radius-item);
+    padding: var(--space-m);
+    margin-top: var(--space-m);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.finding-remediation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--awsui-color-text-interactive-default);
+}
+
+.remediation-title {
+    margin: 0 0 var(--space-xs) 0;
+    color: var(--awsui-color-text-interactive-default);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.remediation-title:hover {
+    color: var(--primary-700);
+}
+
+.finding-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-l);
+    padding: var(--space-m);
+    background: var(--awsui-color-background-container-header);
+    border-radius: var(--border-radius-item);
+    font-size: var(--font-size-body-s);
+    font-family: var(--font-family-monospace);
+    border: 1px solid var(--awsui-color-border-container-top);
+}
+
+.meta-item {
+    color: var(--awsui-color-text-body-secondary);
+    text-shadow: none;
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body-s);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.meta-item::after {
+    content: '•';
+    margin-left: var(--space-m);
+    color: var(--gray-400);
+    font-weight: var(--font-weight-normal);
+}
+
+.meta-item:last-child::after {
+    content: '';
+    margin-left: 0;
+}
+
+.meta-item strong {
+    color: var(--awsui-color-text-body-default);
+    font-weight: var(--font-weight-bold);
+    text-shadow: none;
+    transition: all 0.3s ease;
+    margin-right: var(--space-xxs);
+}
+
+/* Dark mode finding cards */
+body.dark-mode .finding-card {
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-md);
+}
+
+body.dark-mode .finding-header {
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #1a2436 100%);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark-mode .finding-title {
+    color: var(--dark-text);
+}
+
+body.dark-mode .finding-description {
+    color: var(--gray-300);
+}
+
+body.dark-mode .finding-remediation {
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #1a2436 100%);
+    border: 1px solid var(--primary-700);
+}
+
+body.dark-mode .remediation-title {
+    color: var(--primary-300);
+}
+
+body.dark-mode .remediation-title:hover {
+    color: var(--primary-200);
+}
+
+body.dark-mode .finding-meta {
+    border-top: 1px solid var(--dark-border);
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .meta-item {
+    color: var(--gray-400);
+}
+
+body.dark-mode .meta-item::after {
+    color: var(--gray-600);
+}
+
+body.dark-mode .meta-item strong {
+    color: var(--dark-text);
+}
+
+body.dark-mode .finding-evidence {
+    border-top: 1px solid var(--dark-border);
+}
+
+body.dark-mode .finding-evidence h4,
+body.dark-mode .finding-evidence h5 {
+    color: var(--gray-400);
+}
+
+body.dark-mode .finding-evidence h4:hover,
+body.dark-mode .finding-evidence h5:hover {
+    color: var(--primary-400);
+}
+
+body.dark-mode .finding-evidence h4::before,
+body.dark-mode .finding-evidence h5::before {
+    color: var(--gray-500);
+}
+
+body.dark-mode .finding-evidence pre {
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+    scrollbar-color: var(--gray-600) var(--dark-bg);
+}
+
+body.dark-mode .finding-evidence pre::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+}
+
+body.dark-mode .finding-evidence pre::-webkit-scrollbar-thumb {
+    background: var(--gray-600);
+}
+
+body.dark-mode .finding-evidence pre::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+/* Code and Evidence Styling */
+pre,
+code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.finding-evidence {
+    margin-top: var(--space-l);
+    border-top: 2px solid var(--awsui-color-border-divider-default);
+    padding-top: var(--space-m);
+}
+
+.finding-evidence h4,
+.finding-evidence h5 {
+    margin: 0 0 var(--space-s) 0;
+    color: var(--awsui-color-text-body-default);
+    font-size: var(--font-size-body-m);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.finding-evidence h4:hover,
+.finding-evidence h5:hover {
+    color: var(--awsui-color-text-interactive-default);
+}
+
+.finding-evidence h4::before,
+.finding-evidence h5::before {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: var(--font-size-body-s);
+    color: var(--awsui-color-text-body-secondary);
+    transition: transform 0.3s ease;
+}
+
+.finding-evidence.collapsed h4::before,
+.finding-evidence.collapsed h5::before {
+    transform: rotate(-90deg);
+}
+
+.finding-evidence-content {
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.finding-evidence.collapsed .finding-evidence-content {
+    max-height: 0;
+    opacity: 0;
+}
+
+.finding-evidence pre {
+    background: var(--awsui-color-background-container-header);
+    border: 1px solid var(--awsui-color-border-container-top);
+    padding: var(--space-m);
+    border-radius: var(--border-radius-item);
+    overflow-x: auto;
+    font-size: var(--font-size-body-s);
+    font-family: var(--font-family-monospace);
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-400) var(--gray-100);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: var(--line-height-body-s);
+    margin: 0;
+}
+
+.finding-evidence pre::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.finding-evidence pre::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+}
+
+.finding-evidence pre::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: var(--radius-md);
+}
+
+.finding-evidence pre::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+
+/* Structured remediation (Requirement 42) */
+.remediation-steps {
+    margin: var(--space-xs) 0 var(--space-s) var(--space-m);
+    padding-left: var(--space-m);
+}
+
+.remediation-steps li {
+    margin-bottom: var(--space-s);
+    line-height: var(--line-height-body-m);
+}
+
+.remediation-console {
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-body-s);
+    color: var(--awsui-color-text-body-secondary);
+    margin-top: var(--space-xxs);
+}
+
+.remediation-command {
+    background: var(--awsui-color-background-container-header);
+    border: 1px solid var(--awsui-color-border-container-top);
+    border-radius: var(--border-radius-item);
+    padding: var(--space-xs) var(--space-s);
+    margin: var(--space-xxs) 0 0 0;
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-body-s);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.remediation-targets {
+    font-size: var(--font-size-body-s);
+    color: var(--awsui-color-text-body-secondary);
+    margin: var(--space-xs) 0;
+}
+
+.remediation-applies-if {
+    background: var(--primary-50);
+    border-left: 3px solid var(--awsui-color-text-interactive-default);
+    padding: var(--space-xs) var(--space-s);
+    margin: var(--space-s) 0;
+    border-radius: var(--border-radius-badge);
+    font-size: var(--font-size-body-s);
+    color: var(--awsui-color-text-body-default);
+}
+
+.remediation-references {
+    margin: var(--space-xs) 0 0 var(--space-m);
+    padding-left: var(--space-m);
+    font-size: var(--font-size-body-s);
+}
+
+.remediation-references a {
+    color: var(--awsui-color-text-interactive-default);
+}
+
+/* ============================================================================
+ * Markdown-rendered content
+ *
+ * Applied to any block that runs a string through the ``markdown`` Jinja
+ * filter — currently finding descriptions and remediation bodies.
+ * markdown-it-py emits standard HTML tags (<p>, <ul>, <ol>, <li>, <pre>,
+ * <code>, <strong>, <em>, <a>, <blockquote>, <hr>), and the browser's
+ * default styles collapse the paragraph spacing on those tags to almost
+ * nothing inside a flex/grid context. The rules below give them
+ * document-like breathing room so a multi-paragraph explanation reads
+ * like an explanation, not a wall of text.
+ * ============================================================================ */
+
+.markdown-body > *:first-child {
+    margin-top: 0;
+}
+
+.markdown-body > *:last-child {
+    margin-bottom: 0;
+}
+
+.markdown-body p {
+    margin: 0 0 var(--space-s, 0.75rem);
+    line-height: 1.55;
+}
+
+.markdown-body p + p {
+    margin-top: var(--space-s, 0.75rem);
+}
+
+.markdown-body strong {
+    font-weight: 600;
+    color: inherit;
+}
+
+.markdown-body em {
+    font-style: italic;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin: 0 0 var(--space-s, 0.75rem);
+    padding-left: 1.5rem;
+    line-height: 1.55;
+}
+
+.markdown-body ul {
+    list-style: disc;
+}
+
+.markdown-body ol {
+    list-style: decimal;
+}
+
+.markdown-body li {
+    margin: 0.15rem 0;
+}
+
+.markdown-body li > p {
+    margin: 0 0 0.35rem;
+}
+
+.markdown-body ul ul,
+.markdown-body ol ol,
+.markdown-body ul ol,
+.markdown-body ol ul {
+    margin: 0.25rem 0 0.25rem;
+}
+
+.markdown-body code {
+    padding: 0.1rem 0.35rem;
+    background: #f1f3f5;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: #24292f;
+    word-break: break-word;
+}
+
+.markdown-body pre {
+    margin: 0 0 var(--space-s, 0.75rem);
+    padding: 0.85rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.85rem;
+}
+
+.markdown-body pre code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+    border-radius: 0;
+    white-space: pre;
+}
+
+.markdown-body a {
+    color: var(--primary-600, #0972d3);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.markdown-body a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.markdown-body blockquote {
+    margin: 0 0 var(--space-s, 0.75rem);
+    padding: 0.5rem 0.9rem;
+    border-left: 3px solid #adb5bd;
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.markdown-body hr {
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Nested inside a remediation step's <li> — remove the paragraph's
+ * bottom margin so the step's own layout (console-path badge, command
+ * block) sits flush without a big gap. */
+.remediation-steps li > .markdown-body p:only-child,
+.remediation-steps li > .markdown-body > p:last-child {
+    margin-bottom: 0;
+}
+
+/* -- Dark mode -------------------------------------------------------- */
+
+body.dark-mode .markdown-body code {
+    background: #2a2d31;
+    color: #f0f0f0;
+}
+
+body.dark-mode .markdown-body pre {
+    background: #1e1f22;
+    border-color: #3a3d42;
+    color: #e6e6e6;
+}
+
+body.dark-mode .markdown-body blockquote {
+    background: #2a2d31;
+    border-left-color: #6c757d;
+    color: #ced4da;
+}
+
+body.dark-mode .markdown-body a {
+    color: #7cc0ff;
+}
+
+body.dark-mode .markdown-body hr {
+    border-top-color: #495057;
+}
+
+/* ============================================================================
+ * Evidence block — collapsible <details> wrapping a mix of a definition
+ * list (scalars), one or more tables (list-of-dicts entries like
+ * hardcoded_details / flagged_prompts / complex_flows), and any nested
+ * sub-sections. See ReportGenerator._render_evidence for the underlying
+ * pattern-matching logic. This CSS is scoped to `.finding-evidence`
+ * itself so it doesn't leak onto other <details> or <table> elements
+ * elsewhere in the report.
+ * ============================================================================ */
+
+.finding-evidence {
+    margin-top: var(--space-m, 1rem);
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.finding-evidence > summary {
+    cursor: pointer;
+    padding: 0.5rem 0.85rem;
+    background: #eef1f4;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Hide the browser default disclosure triangle so we can render our own. */
+.finding-evidence > summary::-webkit-details-marker {
+    display: none;
+}
+
+.finding-evidence > summary::before {
+    content: '\25B8'; /* right-pointing small triangle */
+    display: inline-block;
+    transition: transform 0.15s ease;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.finding-evidence[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.finding-evidence .evidence-body {
+    padding: 0.85rem 1rem 1rem;
+}
+
+.finding-evidence .evidence-section + .evidence-section {
+    margin-top: 1rem;
+}
+
+.finding-evidence .evidence-heading {
+    margin: 0 0 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.finding-evidence .evidence-count {
+    text-transform: none;
+    letter-spacing: normal;
+    color: #6c757d;
+    font-weight: 400;
+    font-size: 0.85em;
+}
+
+/* -- Scalar definition list -- */
+
+.finding-evidence .evidence-scalars {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 0.9rem;
+    row-gap: 0.25rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+}
+
+.finding-evidence .evidence-scalars dt {
+    color: #6c757d;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.finding-evidence .evidence-scalars dd {
+    margin: 0;
+    color: #212529;
+    word-break: break-word;
+}
+
+/* -- Tables (list-of-dicts) -- */
+
+.finding-evidence .evidence-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.finding-evidence .evidence-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+}
+
+.finding-evidence .evidence-table thead {
+    background: #f1f3f5;
+}
+
+.finding-evidence .evidence-table th,
+.finding-evidence .evidence-table td {
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+    white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.finding-evidence .evidence-table th {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.78rem;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.finding-evidence .evidence-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+.finding-evidence .evidence-table tbody tr:hover {
+    background: #eef4fb;
+}
+
+.finding-evidence .evidence-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* -- Abbreviated values (ARNs, long strings) -- */
+
+.finding-evidence .evidence-arn,
+.finding-evidence .evidence-abbrev {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    color: #24292f;
+    cursor: help;
+    border-bottom: 1px dotted #adb5bd;
+}
+
+.finding-evidence .evidence-null {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+/* -- Fallback JSON pre block -- */
+
+.finding-evidence .evidence-json {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    background: #f1f3f5;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    max-height: 24rem;
+    overflow: auto;
+    white-space: pre;
+}
+
+/* -- Scalar list -- */
+
+.finding-evidence .evidence-list {
+    margin: 0 0 0.75rem;
+    padding-left: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.finding-evidence .evidence-nested {
+    padding-left: 0.75rem;
+    border-left: 3px solid #dee2e6;
+}
+
+/* -- Small screens -- */
+
+@media (max-width: 720px) {
+    .finding-evidence .evidence-scalars {
+        grid-template-columns: 1fr;
+    }
+    .finding-evidence .evidence-scalars dt {
+        margin-top: 0.4rem;
+    }
+    .finding-evidence .evidence-table th,
+    .finding-evidence .evidence-table td {
+        max-width: 220px;
+    }
+}
+
+/* -- Dark mode -- */
+
+body.dark-mode .finding-evidence {
+    background: #1e2130;
+    border-color: #3a3d42;
+}
+
+body.dark-mode .finding-evidence > summary {
+    background: #2a2d3e;
+    color: #dee2e6;
+}
+
+body.dark-mode .finding-evidence .evidence-heading {
+    color: #ced4da;
+}
+
+body.dark-mode .finding-evidence .evidence-count {
+    color: #adb5bd;
+}
+
+body.dark-mode .finding-evidence .evidence-scalars dt {
+    color: #adb5bd;
+}
+
+body.dark-mode .finding-evidence .evidence-scalars dd {
+    color: #f8f9fa;
+}
+
+body.dark-mode .finding-evidence .evidence-table-wrap {
+    background: #14161f;
+    border-color: #3a3d42;
+}
+
+body.dark-mode .finding-evidence .evidence-table {
+    color: #e6e6e6;
+}
+
+body.dark-mode .finding-evidence .evidence-table thead {
+    background: #2a2d3e;
+}
+
+body.dark-mode .finding-evidence .evidence-table th {
+    color: #dee2e6;
+    border-bottom-color: #495057;
+}
+
+body.dark-mode .finding-evidence .evidence-table th,
+body.dark-mode .finding-evidence .evidence-table td {
+    border-bottom-color: #2a2d3e;
+}
+
+body.dark-mode .finding-evidence .evidence-table tbody tr:nth-child(even) {
+    background: #191c26;
+}
+
+body.dark-mode .finding-evidence .evidence-table tbody tr:hover {
+    background: #262a3a;
+}
+
+body.dark-mode .finding-evidence .evidence-arn,
+body.dark-mode .finding-evidence .evidence-abbrev {
+    color: #f0f0f0;
+    border-bottom-color: #6c757d;
+}
+
+body.dark-mode .finding-evidence .evidence-null {
+    color: #6c757d;
+}
+
+body.dark-mode .finding-evidence .evidence-json {
+    background: #14161f;
+    border-color: #3a3d42;
+    color: #e6e6e6;
+}
+
+body.dark-mode .finding-evidence .evidence-nested {
+    border-left-color: #495057;
+}
+
+/* Theme-aware report readability */
+.filter-stats {
+    color: var(--awsui-color-text-body-secondary);
+    font-size: 0.9rem;
+}
+
+.filter-stats-match {
+    color: var(--awsui-color-text-interactive-default);
+}
+
+body.dark-mode .pillar-title {
+    color: var(--awsui-color-text-heading-default);
+}
+
+body.dark-mode .pillar-icon {
+    background: rgba(139, 196, 255, 0.14);
+    color: var(--awsui-color-text-interactive-default);
+}
+
+body.dark-mode .finding-card[data-status="not_applicable"] {
+    opacity: 0.78;
+}
+
+body.dark-mode .finding-card[data-status="not_applicable"] .finding-title,
+body.dark-mode .finding-card[data-status="not_applicable"] .finding-description {
+    color: var(--awsui-color-text-body-secondary);
+}
+
+body.dark-mode .remediation-console,
+body.dark-mode .remediation-targets {
+    color: var(--awsui-color-text-body-secondary);
+}
+
+body.dark-mode .remediation-command {
+    background: var(--awsui-color-background-container-header);
+    border-color: var(--awsui-color-border-container-top);
+    color: var(--awsui-color-text-body-default);
+}
+
+body.dark-mode .remediation-applies-if {
+    background: rgba(139, 196, 255, 0.12);
+    border-left-color: var(--awsui-color-text-interactive-default);
+    color: var(--awsui-color-text-body-default);
+}
+
+body.dark-mode .finding-evidence > summary::marker,
+body.dark-mode .finding-evidence h4::before,
+body.dark-mode .finding-evidence h5::before,
+body.dark-mode .finding-evidence .evidence-null {
+    color: var(--awsui-color-text-body-secondary);
+}

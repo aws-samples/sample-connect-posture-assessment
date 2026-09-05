@@ -1,0 +1,56 @@
+name: ASH Full Repository Scan
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    # Run at 2 AM UTC on the 1st of every month
+    - cron: '0 2 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ASH
+        run: pip install git+https://github.com/awslabs/automated-security-helper.git@v3.5.8
+
+      - name: Run ASH full repository scan
+        run: ash --mode container 2>&1 | tee ash-output.log
+        continue-on-error: true
+
+      - name: Generate scan summary
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          echo "# ASH Full Repository Scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Scan Date:** $(date -u +%Y-%m-%dT%H:%M:%S+00:00)" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Trigger:** $EVENT_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "ash-output.log" ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            tail -50 ash-output.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-full-scan-results
+          path: ash-output.log
+          retention-days: 30

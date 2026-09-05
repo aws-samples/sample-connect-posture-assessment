@@ -1,0 +1,166 @@
+/* Modern Charts Container - Cloudscape Design */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-xl);
+    margin: var(--space-xxl) 0;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.chart-card {
+    background: var(--awsui-color-background-container-content);
+    padding: var(--space-xl);
+    border-radius: var(--border-radius-container);
+    box-shadow: var(--shadow-container);
+    border: 2px solid var(--awsui-color-border-container-top);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
+}
+
+.chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--awsui-color-text-interactive-default);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-panel);
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.chart-card:hover::before {
+    height: 6px;
+    background: linear-gradient(90deg, #ff9900, #ec7211);
+}
+
+.chart-title {
+    margin: 0 0 var(--space-m) 0;
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-heavy);
+    font-family: var(--font-family-base);
+    color: var(--awsui-color-text-heading-default);
+    text-align: center;
+    letter-spacing: -0.01em;
+    position: relative;
+    padding-bottom: var(--space-s);
+    border-bottom: 2px solid var(--awsui-color-border-divider-default);
+    transition: all 0.3s ease;
+}
+
+.chart-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: #ff9900;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: var(--space-m);
+    transition: all 0.3s ease;
+}
+
+/* Loading States - Cloudscape Design */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 4px solid var(--awsui-color-border-container-top);
+    border-top: 4px solid var(--awsui-color-text-interactive-default);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Smooth Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(9, 114, 211, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(9, 114, 211, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(9, 114, 211, 0);
+    }
+}
+
+/* Dark mode charts - Cloudscape Design */
+body.dark-mode .chart-card {
+    background: var(--dark-surface);
+    border: 2px solid var(--dark-border);
+    box-shadow: var(--shadow-container-stacked);
+}
+
+body.dark-mode .chart-card:hover {
+    border-color: var(--awsui-color-text-interactive-default);
+}
+
+body.dark-mode .chart-title {
+    color: var(--dark-text);
+    border-bottom: 2px solid var(--dark-border);
+}
+
+body.dark-mode .chart-title::after {
+    background: #ff9900;
+}

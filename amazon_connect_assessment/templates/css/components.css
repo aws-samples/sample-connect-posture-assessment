@@ -1,0 +1,688 @@
+/* Enhanced Header Styles - Cloudscape Design */
+.report-header {
+    background: linear-gradient(135deg, #0f1b2a 0%, #1a2332 50%, #0f1b2a 100%);
+    color: white;
+    padding: var(--space-xxl) 0;
+    box-shadow: var(--shadow-sticky);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s ease;
+}
+
+.report-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%);
+    opacity: 0.3;
+    transition: opacity 0.5s ease;
+}
+
+.report-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff9900 0%, #ec7211 100%);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-xl);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-xl);
+    text-align: center;
+}
+
+.report-title {
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-display-l);
+    font-weight: var(--font-weight-heavy);
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: var(--line-height-display-l);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-m);
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.service-icon {
+    width: 48px;
+    height: 48px;
+    color: #ff9900;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: all var(--transition-speed) ease;
+    flex-shrink: 0;
+}
+
+.service-icon:hover {
+    color: #ec7211;
+    transform: scale(1.05);
+}
+
+.report-subtitle {
+    margin: var(--space-xs) 0 0 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-normal);
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+/* Dark mode header styles */
+body.dark-mode .report-header {
+    background: linear-gradient(135deg, #0a0f1a 0%, #0f1621 50%, #0a0f1a 100%);
+    box-shadow: var(--shadow-xl);
+}
+
+body.dark-mode .report-header::before {
+    opacity: 0.1;
+}
+
+/* Enhanced Executive Summary - Cloudscape Design */
+.executive-summary {
+    background: var(--awsui-color-background-container-content);
+    margin: var(--space-xl) auto;
+    padding: var(--space-xl);
+    border-radius: var(--border-radius-container);
+    box-shadow: var(--shadow-container);
+    border: 1px solid var(--awsui-color-border-container-top);
+    position: relative;
+    overflow: hidden;
+    max-width: 1200px;
+    animation: fadeInUp 0.6s ease-out;
+    transition: all 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.executive-summary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff9900 0%, #ec7211 50%, #ff9900 100%);
+    border-radius: var(--border-radius-container) var(--border-radius-container) 0 0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin: 0 0 var(--space-xl) 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-heading-xl);
+    font-weight: var(--font-weight-heavy);
+    color: var(--awsui-color-text-heading-default);
+    letter-spacing: -0.01em;
+    position: relative;
+    padding-bottom: var(--space-s);
+    border-bottom: 2px solid var(--awsui-color-border-divider-default);
+    transition: all 0.3s ease;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: #ff9900;
+    border-radius: 1px;
+}
+
+.section-icon {
+    width: 24px;
+    height: 24px;
+    color: #ff9900;
+    filter: drop-shadow(0 1px 2px rgba(255, 153, 0, 0.3));
+    transition: all 0.3s ease;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-m);
+    margin: var(--space-m) 0;
+}
+
+.summary-card {
+    background: var(--awsui-color-background-container-header);
+    padding: var(--space-l);
+    border-radius: var(--border-radius-item);
+    border: 2px solid var(--awsui-color-border-container-top);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(0);
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-500);
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-container);
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.summary-card:hover::before {
+    height: 6px;
+    background: linear-gradient(90deg, #ff9900, #ec7211);
+}
+
+.summary-card.critical::before {
+    background: var(--error-500);
+}
+
+.summary-card.warning::before {
+    background: var(--warning-500);
+}
+
+.summary-card.success::before {
+    background: var(--success-500);
+}
+
+.card-value {
+    font-family: var(--font-family-base);
+    font-size: 48px;
+    font-weight: var(--font-weight-heavy);
+    margin: 0;
+    color: var(--awsui-color-text-heading-default);
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.card-label {
+    color: var(--awsui-color-text-body-secondary);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-bold);
+    margin: var(--space-xs) 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-family-base);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+/* Dark mode executive summary styles */
+body.dark-mode .executive-summary {
+    background: linear-gradient(135deg, var(--dark-surface) 0%, #1a2436 100%);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-xl);
+}
+
+body.dark-mode .section-title {
+    color: var(--dark-text);
+    border-bottom: 2px solid var(--dark-border);
+}
+
+body.dark-mode .summary-card {
+    background: linear-gradient(135deg, var(--dark-surface) 0%, #1a2436 100%);
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--shadow-md);
+}
+
+body.dark-mode .card-value {
+    background: linear-gradient(135deg, var(--dark-text) 0%, var(--gray-300) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+body.dark-mode .card-label {
+    color: var(--gray-400);
+}
+
+/* Key Insights Section - Cloudscape Design */
+.insights-section {
+    margin-top: var(--space-xl);
+}
+
+.insights-section h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin: 0 0 var(--space-m) 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-heading-l);
+    font-weight: var(--font-weight-heavy);
+    color: var(--awsui-color-text-heading-default);
+    letter-spacing: -0.01em;
+}
+
+.insights-section .section-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--warning-500);
+}
+
+.insights-section .summary-card {
+    background: var(--awsui-color-background-container-header);
+    border-left: 4px solid var(--warning-500);
+}
+
+.insights-section ul {
+    margin: 0;
+    padding-left: var(--space-l);
+    list-style-type: none;
+}
+
+.insights-section li {
+    margin-bottom: var(--space-m);
+    color: var(--awsui-color-text-body-default);
+    line-height: var(--line-height-body-m);
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    position: relative;
+    padding-left: var(--space-m);
+}
+
+.insights-section li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--warning-500);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-heading-s);
+}
+
+.insights-section li:last-child {
+    margin-bottom: 0;
+}
+
+/* Recommendations Section - Cloudscape Design */
+.recommendations-section {
+    margin-top: var(--space-xl);
+}
+
+.recommendations-section h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin: 0 0 var(--space-m) 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-heading-l);
+    font-weight: var(--font-weight-heavy);
+    color: var(--awsui-color-text-heading-default);
+    letter-spacing: -0.01em;
+}
+
+.recommendations-section .section-icon {
+    width: 20px;
+    height: 20px;
+    color: #ff9900;
+}
+
+/* Priority Recommendations Single Line - Cloudscape Design */
+.recommendations-single-line {
+    background: var(--awsui-color-background-container-content);
+    border-radius: var(--border-radius-container);
+    padding: var(--space-l);
+    box-shadow: var(--shadow-container);
+    border: 1px solid var(--awsui-color-border-container-top);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-m);
+    padding: var(--space-m);
+    border-radius: var(--border-radius-item);
+    background: var(--awsui-color-background-container-header);
+    border: 2px solid var(--awsui-color-border-container-top);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.recommendation-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-container);
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.recommendation-item .recommendation-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--awsui-color-text-interactive-default);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-body-m);
+    font-weight: var(--font-weight-heavy);
+    font-family: var(--font-family-base);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.recommendation-item.critical .recommendation-number {
+    background: var(--error-500);
+}
+
+.recommendation-item.high .recommendation-number {
+    background: var(--warning-500);
+}
+
+.recommendation-item.medium .recommendation-number {
+    background: var(--awsui-color-text-interactive-default);
+}
+
+.recommendation-item:hover .recommendation-number {
+    transform: scale(1.1);
+}
+
+.recommendation-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+}
+
+.recommendation-content strong {
+    color: var(--awsui-color-text-heading-default);
+    font-weight: var(--font-weight-heavy);
+    font-size: var(--font-size-heading-xs);
+    font-family: var(--font-family-base);
+    display: block;
+    margin-bottom: var(--space-xxs);
+}
+
+.recommendation-content span {
+    color: var(--awsui-color-text-body-default);
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-body-m);
+}
+
+.recommendation-findings-count {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    padding: var(--space-xxs) var(--space-xs);
+    background: var(--gray-100);
+    color: var(--awsui-color-text-body-secondary);
+    border-radius: var(--border-radius-badge);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    margin-top: var(--space-xs);
+}
+
+.recommendation-item.critical .recommendation-findings-count {
+    background: var(--error-50);
+    color: var(--awsui-color-text-status-error);
+}
+
+.recommendation-item.high .recommendation-findings-count {
+    background: var(--warning-50);
+    color: var(--awsui-color-text-status-warning);
+}
+
+.recommendation-item.medium .recommendation-findings-count {
+    background: var(--primary-50);
+    color: var(--awsui-color-text-interactive-default);
+}
+
+/* Priority Recommendations Cards - Cloudscape Design */
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-m);
+    margin-top: var(--space-xl);
+}
+
+.recommendation-card {
+    background: var(--awsui-color-background-container-content);
+    border-radius: var(--border-radius-container);
+    padding: var(--space-l);
+    box-shadow: var(--shadow-container);
+    border: 2px solid var(--awsui-color-border-container-top);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.recommendation-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--awsui-color-text-interactive-default);
+    transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-panel);
+    border-color: var(--awsui-color-border-item-focused);
+}
+
+.recommendation-card:hover::before {
+    width: 6px;
+}
+
+.recommendation-card.critical::before {
+    background: var(--error-500);
+}
+
+.recommendation-card.high::before {
+    background: var(--warning-500);
+}
+
+.recommendation-card.medium::before {
+    background: var(--awsui-color-text-interactive-default);
+}
+
+.recommendation-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+    margin-bottom: var(--space-m);
+}
+
+.recommendation-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--awsui-color-text-interactive-default);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-heavy);
+    font-family: var(--font-family-base);
+    box-shadow: var(--shadow-container);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.recommendation-card.critical .recommendation-number {
+    background: var(--error-500);
+}
+
+.recommendation-card.high .recommendation-number {
+    background: var(--warning-500);
+}
+
+.recommendation-card.medium .recommendation-number {
+    background: var(--awsui-color-text-interactive-default);
+}
+
+.recommendation-card:hover .recommendation-number {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-panel);
+}
+
+.recommendation-title {
+    margin: 0;
+    font-size: var(--font-size-heading-s);
+    font-weight: var(--font-weight-heavy);
+    font-family: var(--font-family-base);
+    color: var(--awsui-color-text-heading-default);
+    line-height: var(--line-height-heading-s);
+    letter-spacing: -0.01em;
+}
+
+.recommendation-description {
+    color: var(--awsui-color-text-body-default);
+    font-size: var(--font-size-body-m);
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-body-m);
+    margin: 0;
+}
+
+.recommendation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    padding: var(--space-xxs) var(--space-xs);
+    border-radius: var(--border-radius-badge);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: var(--space-s);
+}
+
+.recommendation-card.critical .recommendation-badge {
+    background: var(--error-50);
+    color: var(--awsui-color-text-status-error);
+    border: 1px solid var(--error-100);
+}
+
+.recommendation-card.high .recommendation-badge {
+    background: var(--warning-50);
+    color: var(--awsui-color-text-status-warning);
+    border: 1px solid var(--warning-100);
+}
+
+.recommendation-card.medium .recommendation-badge {
+    background: var(--primary-50);
+    color: var(--awsui-color-text-interactive-default);
+    border: 1px solid var(--primary-100);
+}
+
+
+/* Dark mode insights section */
+body.dark-mode .insights-section h3 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .insights-section .summary-card {
+    background: linear-gradient(135deg, var(--dark-surface) 0%, #1a2436 100%);
+    border-left: 4px solid var(--warning-500);
+}
+
+body.dark-mode .insights-section li {
+    color: var(--gray-300);
+}
+
+body.dark-mode .insights-section li::before {
+    color: var(--warning-400);
+}
+
+/* Dark mode recommendations section */
+body.dark-mode .recommendations-section h3 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .recommendations-single-line {
+    background: linear-gradient(135deg, var(--dark-surface) 0%, #1a2436 100%);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .recommendation-item {
+    background: var(--dark-bg);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .recommendation-item:hover {
+    border-color: var(--primary-500);
+}
+
+body.dark-mode .recommendation-content strong {
+    color: var(--dark-text);
+}
+
+body.dark-mode .recommendation-content span {
+    color: var(--gray-400);
+}
+
+body.dark-mode .recommendation-findings-count {
+    background: var(--dark-surface);
+    color: var(--gray-300);
+}
+
+body.dark-mode .recommendation-item.critical .recommendation-findings-count {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-400);
+}
+
+body.dark-mode .recommendation-item.high .recommendation-findings-count {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-400);
+}
+
+body.dark-mode .recommendation-item.medium .recommendation-findings-count {
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--primary-400);
+}

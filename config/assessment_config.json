@@ -1,0 +1,97 @@
+{
+    "global_settings": {
+        "timeout": 300,
+        "retry_count": 3,
+        "max_retry_attempts": 5,
+        "retry_base_delay": 1.0,
+        "retry_max_delay": 60.0,
+        "enable_rate_limiting": true,
+        "parallel_execution": true,
+        "max_workers": null,
+        "batch_size": 10,
+        "log_level": "INFO"
+    },
+    "aws": {
+        "region": null,
+        "profile": null
+    },
+    "output": {
+        "format": [
+            "html"
+        ],
+        "directory": "./reports",
+        "filename_template": "connect_assessment_{timestamp}_{account_id}"
+    },
+    "enabled_pillars": [
+        "resilience",
+        "security",
+        "cost_optimization"
+    ],
+    "enabled_severities": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+    ],
+    "future_only": {
+        "check_overrides": {
+            "security-data-001": {
+                "parameters": {
+                    "check_data_retention": true,
+                    "check_access_logging": true
+                },
+                "remediation_template": "Implement comprehensive data protection: 1) Configure appropriate data retention policies for call recordings and chat transcripts, 2) Enable CloudTrail logging for API access, 3) Implement data classification and handling procedures, 4) Review and configure contact data retention settings, 5) Ensure compliance with applicable privacy regulations (GDPR, CCPA, etc.)."
+            },
+            "cost-unused-001": {
+                "parameters": {
+                    "check_unused_queues": true,
+                    "check_inactive_users": true,
+                    "inactive_threshold_days": 90
+                },
+                "remediation_template": "Remove or optimize unused resources: 1) Deactivate or remove inactive users who haven't logged in recently, 2) Remove unused queues that aren't receiving calls, 3) Consolidate redundant routing profiles, 4) Archive unused contact flows, 5) Review and remove unnecessary integrations. Monitor usage patterns regularly to identify optimization opportunities."
+            },
+            "cost-oversized-001": {
+                "parameters": {
+                    "check_queue_capacity": true,
+                    "check_routing_profiles": true
+                },
+                "remediation_template": "Right-size your Connect configuration: 1) Review queue capacity settings and adjust based on actual usage, 2) Consolidate similar contact flows to reduce complexity, 3) Optimize routing profiles to reduce redundancy, 4) Review user permissions and consolidate security profiles, 5) Monitor actual usage patterns and adjust configurations accordingly."
+            },
+            "cost-inefficient-001": {
+                "parameters": {
+                    "check_resource_allocation": true,
+                    "check_integration_efficiency": true
+                },
+                "remediation_template": "Optimize resource allocation: 1) Balance queue distributions across routing profiles, 2) Ensure users have appropriate routing profile assignments, 3) Review contact flow efficiency and eliminate redundant steps, 4) Optimize integration usage to reduce API calls, 5) Implement proper resource tagging for cost tracking and allocation."
+            },
+            "experimental-check-001": {
+                "enabled": false
+            }
+        }
+    },
+    "checks": {
+        "security-iam-001": {
+            "enabled": true,
+            "severity": "critical"
+        },
+        "ops-auto-resolve-001": {
+            "enabled": false
+        },
+        "security-data-001": {
+            "enabled": true,
+            "severity": "medium"
+        },
+        "cost-unused-001": {
+            "enabled": true,
+            "severity": "medium"
+        },
+        "cost-oversized-001": {
+            "enabled": true,
+            "severity": "low"
+        },
+        "cost-inefficient-001": {
+            "enabled": true,
+            "severity": "medium"
+        }
+    }
+}

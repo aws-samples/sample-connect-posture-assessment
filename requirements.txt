@@ -1,0 +1,6 @@
+# Dependencies are declared in pyproject.toml (single source of truth).
+# This file delegates to it so `pip install -r requirements.txt` keeps working
+# and never drifts from the package metadata.
+#
+#   - runtime + dev + test tooling:
+-e .[dev,test]

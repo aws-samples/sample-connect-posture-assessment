@@ -1,0 +1,134 @@
+# Amazon Connect Assessment Tool Configuration
+# This file demonstrates the external configuration system for checks
+
+# Global assessment settings
+global_settings:
+  timeout: 300
+  retry_count: 3
+  max_retry_attempts: 5
+  retry_base_delay: 1.0
+  retry_max_delay: 60.0
+  enable_rate_limiting: true
+  parallel_execution: true
+  max_workers: null # Auto-detect (CPU count * 2, max 32)
+  batch_size: 10
+  log_level: 'INFO'
+
+# AWS configuration
+aws:
+  region: null # Will use AWS_REGION environment variable or default
+  profile: null # Will use AWS_PROFILE environment variable or default
+
+# Output configuration
+output:
+  format: ['html'] # Supported: html, json, csv, asff
+  directory: './reports'
+  filename_template: 'connect_assessment_{timestamp}_{account_id}'
+
+# Enabled pillars for assessment (all enabled by default)
+enabled_pillars:
+  - 'resilience'
+  - 'security'
+  - 'cost_optimization'
+  - 'operational_excellence'
+  - 'performance_efficiency'
+
+# Enabled severity levels (all enabled by default)
+enabled_severities:
+  - 'critical'
+  - 'high'
+  - 'medium'
+  - 'low'
+
+# Caller Journey Map — visualization of the contact flows callers can reach.
+# Runs after checks complete and renders one customer-experience Mermaid
+# diagram per flow-bound phone number in the HTML report. Skipped entirely
+# when --skip-flow-analysis is set. (There is no top-N / metric ranking:
+# every flow an inbound number targets is rendered.)
+journey_map:
+  # Path-enumeration knobs. NOTE: these are read only by the journey-scoring
+  # pipeline (run_journey_mapping). They do not affect the rendered map above.
+  max_paths_per_did: 200
+  max_depth: 50
+  max_traffic_flows: 10
+
+# Individual check configurations.
+#
+# CheckRegistry.load_checks_from_config currently applies only:
+#   enabled  (bool)  — false unregisters the check entirely
+#   severity (str)   — overrides the check's built-in severity in place
+#
+# Unsupported parameter and remediation examples are retained under
+# `future_only` so they are visible without being treated as live settings.
+# Run `amazon-connect-assessment --list-checks` to see the current, real check
+# IDs before editing this section; unknown IDs are logged and ignored.
+future_only:
+  # Reserved for a future per-check configuration API. These values have no
+  # runtime effect in the current release.
+  check_overrides:
+    security-data-001:
+      parameters:
+        check_data_retention: true
+        check_access_logging: true
+      remediation_template: 'Implement comprehensive data protection: 1) Configure appropriate data retention policies for call recordings and chat transcripts, 2) Enable CloudTrail logging for API access, 3) Implement data classification and handling procedures, 4) Review and configure contact data retention settings, 5) Ensure compliance with applicable privacy regulations (GDPR, CCPA, etc.).'
+
+    cost-unused-001:
+      parameters:
+        check_unused_queues: true
+        check_inactive_users: true
+        inactive_threshold_days: 90
+      remediation_template: 'Remove or optimize unused resources: 1) Deactivate or remove inactive users who have not logged in recently, 2) Remove unused queues that are not receiving calls, 3) Consolidate redundant routing profiles, 4) Archive unused contact flows, 5) Review and remove unnecessary integrations. Monitor usage patterns regularly to identify optimization opportunities.'
+
+    cost-oversized-001:
+      parameters:
+        check_queue_capacity: true
+        check_routing_profiles: true
+      remediation_template: 'Right-size your Connect configuration: 1) Review queue capacity settings and adjust based on actual usage, 2) Consolidate similar contact flows to reduce complexity, 3) Optimize routing profiles to reduce redundancy, 4) Review user permissions and consolidate security profiles, 5) Monitor actual usage patterns and adjust configurations accordingly.'
+
+    cost-inefficient-001:
+      parameters:
+        check_resource_allocation: true
+        check_integration_efficiency: true
+      remediation_template: 'Optimize resource allocation: 1) Balance queue distributions across routing profiles, 2) Ensure users have appropriate routing profile assignments, 3) Review contact flow efficiency and eliminate redundant steps, 4) Optimize integration usage to reduce API calls, 5) Implement proper resource tagging for cost tracking and allocation.'
+
+    experimental-check-001:
+      enabled: false
+
+checks:
+  # Bump a specific check's severity for your organization's risk
+  # tolerance without changing the code.
+  security-iam-001:
+    enabled: true
+    severity: 'critical'
+
+  # Example: disable a check you've accepted as risk for this environment.
+  ops-auto-resolve-001:
+    enabled: false
+
+  # NOTE: security-encryption-001 and security-network-001 were removed from the
+  # tool (they emitted HIGH failures without inspecting the thing they claimed to
+  # check). Real signal now comes from sec-storage-001 and sec-federation-001.
+  # See docs/check-catalog.md "Note on removed security checks".
+
+  security-data-001:
+    enabled: true
+    severity: 'medium'
+
+  # NOTE: resilience-multi-az-001, resilience-dr-001, and resilience-failover-001
+  # were removed from the tool (they fired on trivially-true conditions and
+  # asserted things the tool cannot verify). Substantive resilience signal now
+  # lives in the res-acgr-* set and the contact-flow behavior checks. See
+  # docs/check-catalog.md "Note on removed resilience checks".
+
+  # Cost optimization checks (Medium and Low priority)
+  cost-unused-001:
+    enabled: true
+    severity: 'medium'
+
+  cost-oversized-001:
+    enabled: true
+    severity: 'low'
+
+  cost-inefficient-001:
+    enabled: true
+    severity: 'medium'

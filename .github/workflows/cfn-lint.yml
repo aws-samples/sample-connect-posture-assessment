@@ -1,0 +1,44 @@
+name: CloudFormation Lint
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  cfn-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed CloudFormation files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            cloudformation/**/*.yaml
+            cloudformation/**/*.yml
+            cloudformation/**/*.json
+
+      - name: Set up Python
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install cfn-lint
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: pip install cfn-lint
+
+      - name: Lint CloudFormation templates
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Linting CloudFormation templates..."
+          cfn-lint cloudformation/*.yaml
+
+      - name: Skip message
+        if: steps.changed-files.outputs.any_changed == 'false'
+        run: echo "No CloudFormation files changed - skipping linting"

@@ -1,0 +1,195 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AmazonConnectReadOnlyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "connect:ListInstances",
+                "connect:DescribeInstance",
+                "connect:ListContactFlows",
+                "connect:DescribeContactFlow",
+                "connect:ListQueues",
+                "connect:DescribeQueue",
+                "connect:ListRoutingProfiles",
+                "connect:DescribeRoutingProfile",
+                "connect:ListUsers",
+                "connect:DescribeUser",
+                "connect:ListSecurityProfiles",
+                "connect:DescribeSecurityProfile",
+                "connect:ListPhoneNumbers",
+                "connect:DescribePhoneNumber",
+                "connect:ListHoursOfOperations",
+                "connect:DescribeHoursOfOperation",
+                "connect:ListPrompts",
+                "connect:DescribePrompt",
+                "connect:ListQuickConnects",
+                "connect:DescribeQuickConnect",
+                "connect:ListAgentStatuses",
+                "connect:DescribeAgentStatus",
+                "connect:ListInstanceAttributes",
+                "connect:DescribeInstanceAttribute",
+                "connect:ListInstanceStorageConfigs",
+                "connect:DescribeInstanceStorageConfig",
+                "connect:ListLambdaFunctions",
+                "connect:ListLexBots",
+                "connect:ListBots",
+                "connect:GetMetricData",
+                "connect:GetCurrentMetricData",
+                "connect:GetMetricDataV2"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudWatchMetricsAccess",
+            "Effect": "Allow",
+            "Action": [
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:GetMetricData",
+                "cloudwatch:ListMetrics",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "S3ConfigurationAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetBucketPolicy",
+                "s3:GetBucketPolicyStatus",
+                "s3:GetEncryptionConfiguration",
+                "s3:GetBucketVersioning",
+                "s3:GetBucketLogging",
+                "s3:GetBucketNotification",
+                "s3:GetBucketLocation",
+                "s3:GetBucketAcl",
+                "s3:GetBucketCORS",
+                "s3:GetBucketPublicAccessBlock"
+            ],
+            "Resource": "arn:aws:s3:::*"
+        },
+        {
+            "Sid": "LambdaIntegrationAccess",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:GetFunction",
+                "lambda:GetFunctionConfiguration",
+                "lambda:GetPolicy",
+                "lambda:ListTags"
+            ],
+            "Resource": "arn:aws:lambda:*:*:function:*"
+        },
+        {
+            "Sid": "LexIntegrationAccess",
+            "Effect": "Allow",
+            "Action": [
+                "lex:GetBot",
+                "lex:GetBots",
+                "lex:GetBotAlias",
+                "lex:GetBotAliases",
+                "lex:GetBotVersions",
+                "lex:DescribeBot",
+                "lex:DescribeBotVersion",
+                "lex:DescribeBotAlias",
+                "lex:ListBots",
+                "lex:ListBotVersions",
+                "lex:ListBotAliases"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "KMSKeyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kms:DescribeKey",
+                "kms:GetKeyPolicy",
+                "kms:ListAliases",
+                "kms:ListKeys"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMRoleAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetRole",
+                "iam:GetRolePolicy",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListRolePolicies",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/*",
+                "arn:aws:iam::*:policy/*"
+            ]
+        },
+        {
+            "Sid": "STSAccess",
+            "Effect": "Allow",
+            "Action": [
+                "sts:GetCallerIdentity"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudTrailReadAccess",
+            "Effect": "Allow",
+            "Action": [
+                "cloudtrail:DescribeTrails",
+                "cloudtrail:GetTrailStatus",
+                "cloudtrail:GetEventSelectors",
+                "cloudtrail:LookupEvents"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudWatchAlarmsAccess",
+            "Effect": "Allow",
+            "Action": [
+                "cloudwatch:DescribeAlarms",
+                "cloudwatch:DescribeAlarmsForMetric"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ConnectAdvancedReadAccess",
+            "Effect": "Allow",
+            "Action": [
+                "connect:ListTrafficDistributionGroups",
+                "connect:DescribeTrafficDistributionGroup",
+                "connect:GetTrafficDistribution",
+                "connect:ListSecurityProfilePermissions",
+                "connect:ListApprovedOrigins",
+                "connect:ListPhoneNumbersV2",
+                "connect:ListContactFlowModules",
+                "connect:DescribeContactFlowModule",
+                "connect:DescribeInstanceAttribute",
+                "connect:ListFlowAssociations",
+                "connect:ListIntegrationAssociations"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "QConnectAIOpsReadAccess",
+            "Effect": "Allow",
+            "Action": [
+                "wisdom:GetAssistant",
+                "wisdom:GetKnowledgeBase",
+                "wisdom:ListAIGuardrails",
+                "wisdom:ListAIPrompts"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "BedrockAIOpsReadAccess",
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:GetModelInvocationLoggingConfiguration",
+                "bedrock:ListInferenceProfiles"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+checks:
+  - changed-files:
+    - any-glob-to-any-file: 'amazon_connect_assessment/checks/**'
+
+analyzers:
+  - changed-files:
+    - any-glob-to-any-file: 'amazon_connect_assessment/analyzers/**'
+
+journey:
+  - changed-files:
+    - any-glob-to-any-file: 'amazon_connect_assessment/journey/**'
+
+parsers:
+  - changed-files:
+    - any-glob-to-any-file: 'amazon_connect_assessment/parsers/**'
+
+report:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'amazon_connect_assessment/report/**'
+      - 'amazon_connect_assessment/report_generator.py'
+      - 'amazon_connect_assessment/templates/**'
+
+cost:
+  - changed-files:
+    - any-glob-to-any-file: 'amazon_connect_assessment/cost/**'
+
+infrastructure:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'cloudformation/**'
+      - 'docs/iam-policy-template.json'
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**'
+      - '*.md'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'requirements*.txt'
+      - 'pyproject.toml'

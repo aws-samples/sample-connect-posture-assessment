@@ -1,0 +1,100 @@
+<!-- Executive Summary -->
+<section class="executive-summary">
+    <h2 class="section-title">
+        <i class="fas fa-chart-line section-icon"></i>
+        Executive Summary
+    </h2>
+
+    <!-- Key Metrics -->
+    <div class="summary-grid">
+        <div class="summary-card">
+            <p class="card-value">{{ summary_stats.total_checks }}</p>
+            <p class="card-label">Total Findings</p>
+        </div>
+        <div class="summary-card">
+            <p class="card-value">{{ summary_stats.registered_checks }}</p>
+            <p class="card-label">Registered Checks</p>
+        </div>
+        <div class="summary-card">
+            <p class="card-value">{{ summary_stats.journey_findings }}</p>
+            <p class="card-label">Journey Findings</p>
+        </div>
+        <div
+            class="summary-card {% if summary_stats.pass_rate >= 90 %}success{% elif summary_stats.pass_rate >= 75 %}warning{% else %}critical{% endif %}">
+            <p class="card-value">{{ summary_stats.pass_rate }}%</p>
+            <p class="card-label">Pass Rate</p>
+        </div>
+        <div
+            class="summary-card {% if summary_stats.risk_score <= 25 %}success{% elif summary_stats.risk_score <= 50 %}warning{% else %}critical{% endif %}">
+            <p class="card-value">{{ summary_stats.risk_score }}</p>
+            <p class="card-label">Risk Score</p>
+        </div>
+        <div class="summary-card">
+            <p class="card-value">{{ summary_stats.instances_assessed }}</p>
+            <p class="card-label">Connect Instances</p>
+        </div>
+    </div>
+
+    <!-- Key Insights -->
+    {% if executive_summary.insights %}
+    <div class="insights-section">
+        <h3>
+            <i class="fas fa-lightbulb section-icon"></i>
+            Key Insights
+        </h3>
+        <div class="summary-card">
+            <ul>
+                {% for insight in executive_summary.insights %}
+                <li>{{ insight.message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Recommendations -->
+    {% if executive_summary.recommendations %}
+    <div class="recommendations-section">
+        <h3>
+            <i class="fas fa-star section-icon"></i>
+            Priority Recommendations
+        </h3>
+        <div class="recommendations-single-line">
+            {% for rec in executive_summary.recommendations %}
+            <div class="recommendation-item {{ rec.priority }}">
+                <div class="recommendation-number">{{ loop.index }}</div>
+                <div class="recommendation-content">
+                    <strong>{{ rec.title }}:</strong>
+                    <span>{{ rec.description }}</span>
+                    {% if rec.findings_count %}
+                    <span class="recommendation-findings-count">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ rec.findings_count }} finding{{ 's' if rec.findings_count != 1 else '' }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Options -->
+    <div class="export-options mt-6">
+        <h3><i class="fas fa-download"></i> Export Report</h3>
+        <div class="flex gap-3 mt-4">
+            <button id="export-json" class="btn btn-secondary">
+                <i class="fas fa-file-code"></i> Export as JSON
+            </button>
+            <button id="export-pdf" class="btn btn-secondary">
+                <i class="fas fa-file-pdf"></i> Export as PDF
+            </button>
+            <button id="export-csv" class="btn btn-secondary">
+                <i class="fas fa-file-csv"></i> Export as CSV
+            </button>
+            <button id="export-html" class="btn btn-secondary">
+                <i class="fas fa-file-download"></i> Download HTML
+            </button>
+        </div>
+    </div>
+</section>

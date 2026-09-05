@@ -1,0 +1,328 @@
+/* Modern Responsive Design */
+@media (max-width: 1024px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 var(--space-4);
+    }
+
+    .report-title {
+        font-size: 2.5rem;
+        text-align: center;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+
+    .service-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .report-subtitle {
+        font-size: 1.125rem;
+        text-align: center;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-6);
+        align-items: center;
+    }
+
+    .report-meta {
+        text-align: center;
+    }
+
+    .meta-item {
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-buttons {
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .pillar-header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-3);
+    }
+
+    .pillar-stats {
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .finding-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    .finding-badges {
+        align-self: stretch;
+        justify-content: flex-start;
+    }
+
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendations-single-line {
+        gap: var(--space-3);
+    }
+
+    .recommendation-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    .recommendation-item .recommendation-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .recommendation-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .recommendation-number {
+        width: 40px;
+        height: 40px;
+        font-size: 1.125rem;
+    }
+
+    .recommendation-title {
+        font-size: 1rem;
+    }
+
+    .insights-section li {
+        font-size: 0.9375rem;
+    }
+
+    .finding-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .meta-item {
+        width: 100%;
+    }
+
+    .meta-item::after {
+        display: none;
+    }
+
+    .finding-evidence pre {
+        font-size: 0.75rem;
+        padding: var(--space-3);
+    }
+}
+
+@media (max-width: 640px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filter-buttons {
+        width: 100%;
+    }
+}
+
+/* Enhanced Dark Mode */
+body.dark-mode {
+    background: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+body.dark-mode .executive-summary,
+body.dark-mode .chart-card,
+body.dark-mode .finding-card,
+body.dark-mode .filter-controls,
+body.dark-mode .pillar-sections-container,
+body.dark-mode .recommendation-card {
+    background: var(--dark-surface);
+    color: var(--dark-text);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .report-title,
+body.dark-mode .section-title,
+body.dark-mode .finding-title,
+body.dark-mode .recommendation-title {
+    color: var(--dark-text);
+}
+
+body.dark-mode .card-value {
+    background: linear-gradient(135deg, var(--dark-text) 0%, var(--gray-300) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+body.dark-mode .card-label,
+body.dark-mode .meta-item,
+body.dark-mode .finding-description,
+body.dark-mode .recommendation-description {
+    color: var(--gray-400);
+}
+
+body.dark-mode .meta-item strong {
+    color: var(--dark-text);
+}
+
+body.dark-mode .finding-header {
+    background: var(--dark-bg);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .finding-remediation {
+    background: var(--dark-bg);
+    border-color: var(--primary-700);
+}
+
+body.dark-mode .remediation-title {
+    color: var(--primary-300);
+}
+
+body.dark-mode .finding-evidence pre {
+    background: var(--dark-bg);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+/* Dark Mode Media Query for system preference */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: var(--dark-bg);
+        --text-color: var(--dark-text);
+        --surface-color: var(--dark-surface);
+    }
+
+    body:not(.light-mode) {
+        background: var(--dark-bg);
+        color: var(--dark-text);
+    }
+
+    body:not(.light-mode) .executive-summary,
+    body:not(.light-mode) .chart-card,
+    body:not(.light-mode) .finding-card,
+    body:not(.light-mode) .filter-controls,
+    body:not(.light-mode) .pillar-sections-container,
+    body:not(.light-mode) .recommendation-card {
+        background: var(--dark-surface);
+        color: var(--dark-text);
+        border-color: var(--dark-border);
+    }
+
+    body:not(.light-mode) .report-title,
+    body:not(.light-mode) .section-title,
+    body:not(.light-mode) .finding-title,
+    body:not(.light-mode) .recommendation-title {
+        color: var(--dark-text);
+    }
+
+    body:not(.light-mode) .card-value {
+        background: linear-gradient(135deg, var(--dark-text) 0%, var(--gray-300) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    body:not(.light-mode) .card-label,
+    body:not(.light-mode) .meta-item,
+    body:not(.light-mode) .finding-description,
+    body:not(.light-mode) .recommendation-description {
+        color: var(--gray-400);
+    }
+
+    body:not(.light-mode) .meta-item strong {
+        color: var(--dark-text);
+    }
+
+    body:not(.light-mode) .finding-header {
+        background: var(--dark-bg);
+        border-color: var(--dark-border);
+    }
+
+    body:not(.light-mode) .finding-remediation {
+        background: var(--dark-bg);
+        border-color: var(--primary-700);
+    }
+
+    body:not(.light-mode) .remediation-title {
+        color: var(--primary-300);
+    }
+
+    body:not(.light-mode) .finding-evidence pre {
+        background: var(--dark-bg);
+        border-color: var(--dark-border);
+        color: var(--dark-text);
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+    }
+
+    .filter-controls {
+        display: none;
+    }
+
+    .finding-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+
+    .pillar-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+
+    .chart-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+}

@@ -1,0 +1,346 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Creates the IAM managed policy that Amazon Connect needs to assess your own
+  Amazon Connect deployment, and (optionally) grants it to a named user
+  through an IAM group and/or attaches it to a named role. Read-only across
+  the account.
+
+  Creates the managed policy and (optionally) grants it to a user through a
+  group or attaches it to a role so you can run the tool against your own
+  account without hand-writing the underlying `aws iam create-policy` /
+  `aws iam attach-user-policy` commands.
+
+  Deploy:
+    aws cloudformation deploy \
+      --stack-name amazon-connect-assessment-permissions \
+      --template-file cloudformation/AmazonConnectSelfAssessmentPolicy.yaml \
+      --parameter-overrides AttachToUserName=YOUR_USERNAME \
+      --capabilities CAPABILITY_NAMED_IAM
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Policy configuration"
+        Parameters: [PolicyName]
+      - Label:
+          default: "Attachment (optional — both blank is valid)"
+        Parameters: [AttachToUserName, AttachToRoleName]
+    ParameterLabels:
+      PolicyName:
+        default: "Managed Policy Name"
+      AttachToUserName:
+        default: "IAM User to add to the generated group (optional)"
+      AttachToRoleName:
+        default: "IAM Role to attach to (optional)"
+
+Parameters:
+  PolicyName:
+    Type: String
+    Default: AmazonConnectReadOnly
+    Description: >
+      Name of the managed policy this stack creates. Keep the default unless you
+      already have a policy with the same name in this account (deploying this
+      stack will fail with a name-collision error in that case — delete the old
+      policy or pick a new name here).
+    AllowedPattern: '^[A-Za-z0-9+=,.@_-]+$'
+    ConstraintDescription: Must match the IAM policy name character set.
+    MinLength: 1
+    MaxLength: 128
+
+  AttachToUserName:
+    Type: String
+    Default: ''
+    Description: >
+      Optional. Name (not ARN) of an IAM user that should get this policy
+      through an IAM group managed by this stack. Leave blank to skip user
+      group membership. Both AttachTo* parameters can be set — they are
+      independent.
+    MaxLength: 64
+
+  AttachToRoleName:
+    Type: String
+    Default: ''
+    Description: >
+      Optional. Name (not ARN) of an IAM role that should get this policy
+      attached automatically. Useful for federated principals, EC2 instance
+      roles, and CI runners. Leave blank to skip role attachment.
+    MaxLength: 64
+
+Conditions:
+  # The IAM ManagedPolicy resource treats an empty Roles list as valid but
+  # "attach to a principal named ''" would fail — so we gate the property
+  # entirely with a condition and !Ref AWS::NoValue when not set. User access
+  # is routed through a group to avoid direct user policy attachment.
+  HasUserAttachment: !Not [!Equals ['', !Ref AttachToUserName]]
+  HasRoleAttachment: !Not [!Equals ['', !Ref AttachToRoleName]]
+
+Resources:
+
+  AmazonConnectReadOnlyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Ref PolicyName
+      Description: >
+        Read-only permissions for the Amazon Connect assessment tool. Every
+        canonical action from docs/iam-policy-template.json is granted
+        explicitly — no AWS managed policies are attached, so every action
+        must be inline. A drift test in tests/test_iam_policy_consistency.py
+        fails the build if the template ever diverges from the canonical set.
+      Roles: !If [HasRoleAttachment, [!Ref AttachToRoleName], !Ref 'AWS::NoValue']
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+
+          # Several statements below use Resource:'*'. This is the tightest
+          # scope the underlying read-only APIs support for a self-assessment
+          # tool: either account-wide discovery (resources are enumerated, not
+          # known before ListInstances/ListKeys/etc. run) or APIs that don't
+          # support resource-level authorization at all (cloudwatch metrics,
+          # logs Describe*, cloudtrail lookups, sts:GetCallerIdentity). The
+          # statements that CAN be scoped are (S3, Lambda, IAM). Each '*'
+          # below notes which reason applies. See iam_permissions.py.
+
+          - Sid: AmazonConnectReadOnlyAccess
+            Effect: Allow
+            Action:
+              - connect:ListInstances
+              - connect:DescribeInstance
+              - connect:ListContactFlows
+              - connect:DescribeContactFlow
+              - connect:ListQueues
+              - connect:DescribeQueue
+              - connect:ListRoutingProfiles
+              - connect:DescribeRoutingProfile
+              - connect:ListUsers
+              - connect:DescribeUser
+              - connect:ListSecurityProfiles
+              - connect:DescribeSecurityProfile
+              - connect:ListPhoneNumbers
+              - connect:DescribePhoneNumber
+              - connect:ListHoursOfOperations
+              - connect:DescribeHoursOfOperation
+              - connect:ListPrompts
+              - connect:DescribePrompt
+              - connect:ListQuickConnects
+              - connect:DescribeQuickConnect
+              - connect:ListAgentStatuses
+              - connect:DescribeAgentStatus
+              - connect:ListInstanceAttributes
+              - connect:DescribeInstanceAttribute
+              - connect:ListInstanceStorageConfigs
+              - connect:DescribeInstanceStorageConfig
+              - connect:ListLambdaFunctions
+              - connect:ListLexBots
+              - connect:ListBots
+              - connect:GetMetricData
+              - connect:GetCurrentMetricData
+              - connect:GetMetricDataV2
+            # '*': account-wide discovery — no instance ARN is known before
+            # ListInstances runs. Read-only.
+            Resource: '*'
+
+          - Sid: CloudWatchMetricsAccess
+            Effect: Allow
+            Action:
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricData
+              - cloudwatch:ListMetrics
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            # '*': CloudWatch metrics/logs read APIs don't support
+            # resource-level authorization. Read-only.
+            Resource: '*'
+
+          - Sid: S3ConfigurationAccess
+            Effect: Allow
+            Action:
+              - s3:GetBucketPolicy
+              - s3:GetBucketPolicyStatus
+              # s3:GetEncryptionConfiguration authorizes GetBucketEncryption
+              # (AWS naming quirk).
+              - s3:GetEncryptionConfiguration
+              - s3:GetBucketVersioning
+              - s3:GetBucketLogging
+              - s3:GetBucketNotification
+              - s3:GetBucketLocation
+              - s3:GetBucketAcl
+              - s3:GetBucketCORS
+              - s3:GetBucketPublicAccessBlock
+            Resource: 'arn:aws:s3:::*'
+
+          - Sid: LambdaIntegrationAccess
+            Effect: Allow
+            Action:
+              - lambda:GetFunction
+              - lambda:GetFunctionConfiguration
+              - lambda:GetPolicy
+              - lambda:ListTags
+            Resource: 'arn:aws:lambda:*:*:function:*'
+
+          - Sid: LexIntegrationAccess
+            Effect: Allow
+            Action:
+              # Lex V1 (via the lex-models client)
+              - lex:GetBot
+              - lex:GetBots
+              - lex:GetBotAlias
+              - lex:GetBotAliases
+              - lex:GetBotVersions
+              # Lex V2
+              - lex:DescribeBot
+              - lex:DescribeBotVersion
+              - lex:DescribeBotAlias
+              - lex:ListBots
+              - lex:ListBotVersions
+              - lex:ListBotAliases
+            # '*': Lex bots are enumerated (GetBots/ListBots) before any bot
+            # ARN is known — account-wide discovery. Read-only.
+            Resource: '*'
+
+          - Sid: KMSKeyAccess
+            Effect: Allow
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:ListAliases
+              - kms:ListKeys
+            # '*': ListKeys/ListAliases are account-wide discovery; the key
+            # ARNs DescribeKey inspects come from Connect storage configs and
+            # aren't known in advance. Read-only.
+            Resource: '*'
+
+          - Sid: IAMRoleAccess
+            Effect: Allow
+            # Read-only IAM inspection. Scoped to this account's roles and
+            # policies. Cannot be scoped to *Connect* names because the tool
+            # also inspects execution roles of Lambdas wired into contact flows,
+            # which are frequently not named with a "Connect" prefix.
+            Action:
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:ListAttachedRolePolicies
+              - iam:ListRolePolicies
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/*'
+
+          - Sid: STSAccess
+            Effect: Allow
+            Action:
+              - sts:GetCallerIdentity
+            # '*': sts:GetCallerIdentity takes no resource and cannot be scoped.
+            Resource: '*'
+
+          - Sid: CloudTrailReadAccess
+            Effect: Allow
+            Action:
+              - cloudtrail:DescribeTrails
+              - cloudtrail:GetTrailStatus
+              - cloudtrail:GetEventSelectors
+              # Used by res-acgr-failover-test-001 to look up
+              # UpdateTrafficDistribution events over the last 90 days.
+              - cloudtrail:LookupEvents
+            # '*': CloudTrail read APIs don't support resource-level
+            # authorization for this lookup. Read-only.
+            Resource: '*'
+
+          - Sid: CloudWatchAlarmsAccess
+            Effect: Allow
+            Action:
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:DescribeAlarmsForMetric
+            # '*': cloudwatch:DescribeAlarms(ForMetric) don't support
+            # resource-level authorization. Read-only.
+            Resource: '*'
+
+          - Sid: ConnectAdvancedReadAccess
+            Effect: Allow
+            Action:
+              - connect:ListTrafficDistributionGroups
+              - connect:DescribeTrafficDistributionGroup
+              # Used by res-acgr-traffic-dist-001 to inspect the region split.
+              - connect:GetTrafficDistribution
+              - connect:ListSecurityProfilePermissions
+              - connect:ListApprovedOrigins
+              - connect:ListPhoneNumbersV2
+              - connect:ListContactFlowModules
+              - connect:DescribeContactFlowModule
+              # connect:DescribeInstanceAttribute is intentionally duplicated
+              # in the canonical set to match iam_permissions.py's structure;
+              # IAM de-duplicates at evaluation time.
+              - connect:DescribeInstanceAttribute
+              # Resolves which contact flow each phone number is assigned
+              # to, for the Caller Journey Map. ListPhoneNumbersV2's
+              # TargetArn is the instance/TDG ARN, not the flow ARN.
+              - connect:ListFlowAssociations
+              # Discovers the Q in Connect resources associated with the
+              # instance for the AI operations maturity checks.
+              - connect:ListIntegrationAssociations
+            # '*': account-wide Connect discovery (same rationale as
+            # AmazonConnectReadOnlyAccess). Read-only.
+            Resource: '*'
+
+          - Sid: QConnectAIOpsReadAccess
+            Effect: Allow
+            Action:
+              # qconnect is the boto3 service name; wisdom is the IAM prefix.
+              - wisdom:GetAssistant
+              - wisdom:GetKnowledgeBase
+              - wisdom:ListAIGuardrails
+              - wisdom:ListAIPrompts
+            # Assistant and knowledge-base IDs are discovered at runtime.
+            Resource: '*'
+
+          - Sid: BedrockAIOpsReadAccess
+            Effect: Allow
+            Action:
+              - bedrock:GetModelInvocationLoggingConfiguration
+              - bedrock:ListInferenceProfiles
+            # Account/region-level read APIs used only after Q applicability
+            # has been established for the Connect instance.
+            Resource: '*'
+
+  AmazonConnectAssessmentGroup:
+    Condition: HasUserAttachment
+    Type: AWS::IAM::Group
+    Properties:
+      ManagedPolicyArns:
+        - !Ref AmazonConnectReadOnlyPolicy
+
+  AmazonConnectUserGroupMembership:
+    Condition: HasUserAttachment
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref AmazonConnectAssessmentGroup
+      Users:
+        - !Ref AttachToUserName
+
+Outputs:
+  PolicyArn:
+    Description: >
+      ARN of the created managed policy. Copy this if you deploy the stack
+      without AttachTo parameters and want to attach the policy later — for
+      example to an AWS SSO permission set or to a principal not managed here.
+    Value: !Ref AmazonConnectReadOnlyPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-PolicyArn'
+
+  PolicyName:
+    Description: The managed policy's name.
+    Value: !Ref PolicyName
+
+  AttachmentStatus:
+    Description: Where the policy was attached during this deploy.
+    Value: !If
+      - HasUserAttachment
+      - !If
+        - HasRoleAttachment
+        - !Sub 'Added user ${AttachToUserName} to group ${AmazonConnectAssessmentGroup} and attached to role ${AttachToRoleName}.'
+        - !Sub 'Added user ${AttachToUserName} to group ${AmazonConnectAssessmentGroup}. No role attachment.'
+      - !If
+        - HasRoleAttachment
+        - !Sub 'Attached to role ${AttachToRoleName}. No user group membership.'
+        - 'Created without any attachment. Use the PolicyArn output to attach it manually.'

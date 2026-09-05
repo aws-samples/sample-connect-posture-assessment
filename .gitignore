@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+pip-wheel-metadata/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.env
+.env.*
+!.env.example
+.venv
+env/
+venv/
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Linting / type-checking caches
+.ruff_cache/
+.mypy_cache/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+# Generated reports (keep examples but ignore generated ones)
+reports/*
+!reports/.gitkeep
+
+# Temporary test scripts
+temp_*.py
+test_temp_*.py
+
+# AWS credentials (if accidentally placed in project)
+.aws/
+
+# Log files
+*.log
+logs/
+
+# Backup files
+*~
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej
+
+#Retain the sample report
+examples/*
+!examples/sample_assessment_report.html
+
+# ASH security scanner: retain only the repository configuration
+.ash/*
+!.ash/ash.yaml
+
+# Local legacy artifacts not used by the runtime package
+archive/
+connect-lens/
+
+# Generated documentation and local documentation-site builds
+docs/README.html
+site/
+_site/
+.jekyll-cache/
+.sass-cache/
