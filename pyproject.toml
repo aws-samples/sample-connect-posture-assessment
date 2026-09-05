@@ -56,7 +56,7 @@ test = [
 ]
 screenshots = [
     "playwright==1.55.0",
-    "pillow==11.3.0",
+    "pillow==12.3.0",
 ]
 
 [project.scripts]
